@@ -16,20 +16,31 @@
 <dialog id="export-dlg" aria-labelledby="export-title">
   <form method="dialog" id="export-form" class="export-form">
     <h2 id="export-title">Exportar a PDF</h2>
-    <p class="note">Se abre el informe completo con todas las pestañas, sin importar cuál tengas seleccionada, y la ventana de impresión. Elige <b>Guardar como PDF</b> como destino.</p>
+    <p class="note">Se genera un PDF A4 con todas las pestañas, sin importar cuál tengas seleccionada, y se descarga directamente. Tarda unos segundos.</p>
     <fieldset>
       <legend class="lbl">Incluir</legend>
       <label class="check"><input type="checkbox" id="exp-natal" checked> Carta natal de <span id="exp-natal-name"></span></label>
       <label class="check"><input type="checkbox" id="exp-syn" checked> Comparación de <span id="exp-syn-name"></span></label>
     </fieldset>
     <p class="error" id="export-error" hidden></p>
-    <p class="note" id="export-frame-note" hidden>En esta vista incrustada el navegador bloquea la impresión. Para descargar el PDF, abre <span class="mono">index.html</span> del repositorio directamente en el navegador o en su versión publicada.</p>
+    <p class="note" id="export-frame-note" hidden>En esta vista incrustada el navegador bloquea las descargas y la impresión. Para obtener el PDF, abre <span class="mono">index.html</span> del repositorio directamente en el navegador o en su versión publicada.</p>
     <div class="actions">
-      <button class="btn primary" type="submit" value="ok">Generar PDF</button>
+      <button class="btn primary" type="submit" value="download">Descargar PDF</button>
       <button class="btn" type="submit" value="cancel" formnovalidate>Cancelar</button>
+    </div>
+    <div class="actions">
+      <button class="btn small" type="submit" value="print">Usar la impresión del navegador</button>
     </div>
   </form>
 </dialog>
+
+<div class="pdf-overlay" id="pdf-overlay" hidden role="status" aria-live="polite">
+  <div class="card">
+    <div class="spin" id="pdf-spin" aria-hidden="true"></div>
+    <p id="pdf-status">Generando PDF…</p>
+    <div class="actions" id="pdf-done" hidden><a class="btn primary" id="pdf-open" target="_blank" rel="noopener">Abrir PDF</a><button class="btn" type="button" id="pdf-close">Cerrar</button></div>
+  </div>
+</div>
 
 <main class="wrap">
   <div class="report-bar" id="report-bar" hidden><p><b>Informe completo</b> · todas las pestañas</p><div class="actions"><button class="btn primary small" type="button" id="report-print">Guardar como PDF</button><button class="btn small" type="button" id="report-exit">Volver</button></div></div>

@@ -14,11 +14,11 @@ Abre `index.html` en el navegador, o publícalo con GitHub Pages (rama `main`, c
 
 ### Exportar a PDF
 
-El botón **Exportar PDF** de la cabecera abre el informe completo, con todas las pestañas de la carta natal y de la comparación, sin importar cuál esté seleccionada. Después abre la ventana de impresión del navegador: elige **Guardar como PDF**. La barra superior del informe permite volver a guardarlo o regresar a la vista normal. Ctrl/Cmd + P también exporta todo.
+El botón **Exportar PDF** de la cabecera genera en el navegador un PDF A4 con todas las pestañas de la carta natal y de la comparación, sin importar cuál esté seleccionada, y lo descarga. No depende del motor de impresión, así que sale igual en iPad, iPhone, Android y ordenador. Cada sección se convierte en imagen con [html2canvas](https://html2canvas.hertzen.com/) 1.4.1 y se compone con [jsPDF](https://github.com/parallax/jsPDF) 2.5.1; ambas se cargan de cdnjs solo al exportar. Los cortes de página caen entre tarjetas, filas y párrafos, nunca a mitad de uno. Cada página lleva pie con nombre y número.
 
-El PDF sale en A4 y tema claro, con texto seleccionable y la rueda en vector. Los estilos de impresión usan bloques en lugar de grid para que Firefox y Safari repartan bien las secciones largas entre páginas.
+En el mismo diálogo queda la opción **Usar la impresión del navegador** (texto seleccionable), que funciona bien en ordenador pero no en iOS, donde el motor de impresión corta los documentos largos.
 
-Las vistas incrustadas que bloquean la impresión (por ejemplo, la vista previa de claude.ai) no pueden exportar; abre `index.html` directamente.
+Las vistas incrustadas que bloquean descargas (por ejemplo, la vista previa de claude.ai) no pueden exportar; abre `index.html` directamente.
 
 ## Desarrollo
 

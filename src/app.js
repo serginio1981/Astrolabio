@@ -732,7 +732,10 @@ function enterReport(withNatal, withSyn, auto) {
   if (withNatal && natal) renderNatal();
   if (withSyn && syn) renderSyn();
   report = { hidden: $$('[role="tabpanel"]').map((p) => [p, p.hidden]), scroll: window.scrollY, auto };
-  $$('[role="tabpanel"][data-group="natal"], [role="tabpanel"][data-group="syn"]').forEach((p) => { p.hidden = false; });
+  $$('[role="tabpanel"][data-group="natal"], [role="tabpanel"][data-group="syn"]').forEach((p) => {
+    p.hidden = false;
+    const h = document.createElement('h2'); h.className = 'report-title'; h.textContent = p.dataset.printTitle; p.prepend(h);
+  });
   $('#view-natal').hidden = !withNatal;
   $('#view-sinastria').hidden = !withSyn;
   document.body.classList.add('report');
@@ -747,6 +750,7 @@ function enterReport(withNatal, withSyn, auto) {
 function exitReport() {
   if (!report) return;
   report.hidden.forEach(([p, h]) => { p.hidden = h; });
+  $$('.report-title').forEach((h) => h.remove());
   document.body.classList.remove('report', 'p-natal', 'p-syn');
   $('#report-bar').hidden = true;
   document.title = 'Astrolabio';
@@ -755,6 +759,182 @@ function exitReport() {
 }
 window.addEventListener('beforeprint', () => { if (!report) enterReport(!!natal, !!syn, true); });
 window.addEventListener('afterprint', () => { if (report && report.auto) exitReport(); });
+
+/* ── PDF generado en el navegador (no depende del motor de impresión) ─ */
+const PDF_LIBS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+];
+const loadScript = (src) => new Promise((res, rej) => {
+  if ([...document.scripts].some((x) => x.src === src)) { res(); return; }
+  const el = document.createElement('script');
+  el.src = src; el.onload = res; el.onerror = () => rej(new Error('No se pudo cargar la librería de PDF. Revisa tu conexión.'));
+  document.head.appendChild(el);
+});
+const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+/* Pinta un SVG en un canvas leyendo los estilos calculados (html2canvas no aplica el CSS de la página dentro de un SVG) */
+function svgToImage(svg, scale) {
+  const box = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(box.width * scale)); c.height = Math.max(1, Math.round(box.height * scale));
+  const ctx = c.getContext('2d');
+  ctx.scale(c.width / vb.width, c.height / vb.height); ctx.translate(-vb.x, -vb.y);
+  const num = (el, a) => parseFloat(el.getAttribute(a)) || 0;
+  for (const el of svg.querySelectorAll('circle, line, path, text')) {
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none') continue;
+    ctx.save();
+    ctx.globalAlpha = parseFloat(el.getAttribute('opacity') ?? cs.opacity) || 1;
+    const tr = /rotate\(([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\)/.exec(el.getAttribute('transform') || '');
+    if (tr) { ctx.translate(+tr[2], +tr[3]); ctx.rotate(+tr[1] * D2R); ctx.translate(-tr[2], -tr[3]); }
+    const fill = cs.fill, stroke = cs.stroke, sw = parseFloat(cs.strokeWidth) || 1;
+    const dash = cs.strokeDasharray && cs.strokeDasharray !== 'none' ? cs.strokeDasharray.split(/[ ,]+/).map(parseFloat).filter((n) => !isNaN(n)) : [];
+    if (el.tagName === 'text') {
+      const txt = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('');
+      ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      const anchor = el.getAttribute('text-anchor');
+      ctx.textAlign = anchor === 'middle' ? 'center' : anchor === 'end' ? 'right' : 'left';
+      ctx.textBaseline = el.getAttribute('dominant-baseline') === 'central' ? 'middle' : 'alphabetic';
+      ctx.fillStyle = fill && fill !== 'none' ? fill : '#000';
+      ctx.fillText(txt, num(el, 'x'), num(el, 'y'));
+    } else {
+      let path;
+      if (el.tagName === 'circle') { path = new Path2D(); path.arc(num(el, 'cx'), num(el, 'cy'), num(el, 'r'), 0, 2 * Math.PI); }
+      else if (el.tagName === 'line') { path = new Path2D(); path.moveTo(num(el, 'x1'), num(el, 'y1')); path.lineTo(num(el, 'x2'), num(el, 'y2')); }
+      else path = new Path2D(el.getAttribute('d'));
+      if (fill && fill !== 'none' && el.tagName !== 'line') { ctx.fillStyle = fill; ctx.fill(path); }
+      if (stroke && stroke !== 'none') {
+        ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.setLineDash(dash); ctx.lineCap = cs.strokeLinecap || 'butt'; ctx.stroke(path);
+      }
+    }
+    ctx.restore();
+  }
+  const img = new Image();
+  img.src = c.toDataURL('image/png');
+  img.style.width = box.width + 'px'; img.style.height = box.height + 'px'; img.style.display = 'block'; img.style.margin = getComputedStyle(svg).margin;
+  return img;
+}
+function swapSVGs(root, scale) {
+  const swaps = [];
+  for (const svg of root.querySelectorAll('svg.wheel, svg.score-ring')) {
+    const img = svgToImage(svg, scale);
+    svg.replaceWith(img); swaps.push([img, svg]);
+  }
+  return () => swaps.forEach(([img, svg]) => img.replaceWith(svg));
+}
+
+/* Puntos donde se puede cortar una sección sin partir tarjetas, filas ni párrafos */
+const ATOMS = '.item, tr, .bar, .pillar, .wheel-box, .legend, h2, h3, p, .section-title, .score, .cat, .card, .print-head, dl';
+function cutPlanner(el) {
+  const top = el.getBoundingClientRect().top;
+  const rects = [...el.querySelectorAll(ATOMS)].map((a) => { const r = a.getBoundingClientRect(); return [r.top - top, r.bottom - top]; }).filter(([t, b]) => b - t > 0);
+  const ys = [...new Set(rects.flatMap(([t, b]) => [Math.floor(t) - 1, Math.ceil(b) + 1]))].sort((a, b) => b - a);
+  const heads = [...el.querySelectorAll('h2, h3, .section-title, .panel-intro')].map((h) => h.getBoundingClientRect().bottom - top);
+  return (start, end) => {
+    for (const y of ys) {
+      if (y > end || y <= start + 30) continue;
+      if (heads.some((b) => b <= y && y - b < 20)) continue;
+      if (!rects.some(([t, b]) => t < y && b > y)) return y;
+    }
+    return null;
+  };
+}
+
+async function downloadPDF(withNatal, withSyn) {
+  const ov = $('#pdf-overlay'), status = $('#pdf-status');
+  ov.hidden = false; $('#pdf-done').hidden = true; $('#pdf-spin').hidden = false; $('#pdf-open').hidden = false;
+  status.textContent = 'Preparando el informe…';
+  const restoreScroll = window.scrollY;
+  let entered = false;
+  try {
+    await Promise.all(PDF_LIBS.map(loadScript));
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    enterReport(withNatal, withSyn, false); entered = true;
+    document.body.classList.add('pdf-capture');
+    window.scrollTo(0, 0);
+    await frame();
+
+    const sections = [];
+    sections.push({ el: $('.print-head'), page: false });
+    if (withNatal) {
+      sections.push({ el: $('#natal-summary'), page: false });
+      $$('#natal-content > [role="tabpanel"]').forEach((p, i) => sections.push({ el: p, page: i > 0 }));
+    }
+    if (withSyn) {
+      sections.push({ el: $('#syn-summary'), page: withNatal });
+      $$('#syn-content > [role="tabpanel"]').forEach((p, i) => sections.push({ el: p, page: i > 0 }));
+    }
+    sections.push({ el: $('.foot'), page: false });
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+    const PW = 210, PH = 297, M = 12, TOP = 12, BOT = 16, CW = PW - 2 * M, LIMIT = PH - BOT;
+    const refW = $('#natal-content').getBoundingClientRect().width || $('#syn-content').getBoundingClientRect().width;
+    const k = CW / refW;
+    let y = TOP, pageEmpty = true;
+    const newPage = () => { doc.addPage(); y = TOP; pageEmpty = true; };
+
+    for (let i = 0; i < sections.length; i++) {
+      const { el, page } = sections[i];
+      status.textContent = `Generando PDF… ${Math.round(100 * i / sections.length)} %`;
+      await frame();
+      if (page && !pageEmpty) newPage();
+      const box = el.getBoundingClientRect(), H = box.height, W = box.width;
+      if (H < 1) continue;
+      const scale = Math.max(1, Math.min(1.8, Math.sqrt(14e6 / (W * H)), 30000 / H));
+      const restore = swapSVGs(el, scale);
+      let canvas;
+      try {
+        canvas = await window.html2canvas(el, { scale, backgroundColor: '#ffffff', logging: false, useCORS: true, scrollX: 0, scrollY: 0, ignoreElements: (n) => n.id === 'pdf-overlay' });
+      } finally { restore(); }
+      const plan = cutPlanner(el), sc = canvas.height / H;
+      let start = 0;
+      while (start < H - 1) {
+        let room = (LIMIT - y) / k;
+        if (room < 80 && !pageEmpty) { newPage(); room = (LIMIT - y) / k; }
+        let end = Math.min(H, start + room);
+        if (end < H) {
+          const cut = plan(start, end);
+          if (cut) end = cut;
+          else if (!pageEmpty) { newPage(); continue; }
+        }
+        const sh = Math.max(1, Math.round((end - start) * sc));
+        const part = document.createElement('canvas');
+        part.width = canvas.width; part.height = sh;
+        const pc = part.getContext('2d');
+        pc.fillStyle = '#ffffff'; pc.fillRect(0, 0, part.width, sh);
+        pc.drawImage(canvas, 0, Math.round(start * sc), canvas.width, sh, 0, 0, canvas.width, sh);
+        doc.addImage(part.toDataURL('image/jpeg', 0.9), 'JPEG', M, y, W * k, (end - start) * k, undefined, 'FAST');
+        y += (end - start) * k + 4; pageEmpty = false;
+        start = end;
+        if (start < H - 1) newPage();
+      }
+    }
+
+    const who = [withNatal && natal ? natal.data.name : null, withSyn && syn ? `${syn.dA.name} y ${syn.dB.name}` : null].filter(Boolean).join(' · ');
+    const n = doc.getNumberOfPages();
+    for (let p = 1; p <= n; p++) {
+      doc.setPage(p); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(110, 118, 135);
+      doc.text(`Astrolabio · ${who}`, M, PH - 8);
+      doc.text(`${p} / ${n}`, PW - M, PH - 8, { align: 'right' });
+    }
+    const file = `Astrolabio - ${who.replace(/[\\/:*?"<>|]/g, '')}.pdf`;
+    const url = URL.createObjectURL(doc.output('blob'));
+    const a = $('#pdf-open'); a.href = url; a.download = file;
+    try { doc.save(file); } catch (err) { /* la descarga puede estar bloqueada; queda el botón Abrir */ }
+    status.textContent = `PDF listo: ${n} páginas. Si no se descargó solo, toca «Abrir PDF».`;
+    $('#pdf-done').hidden = false;
+  } catch (err) {
+    status.textContent = `No se pudo generar el PDF. ${err && err.message ? err.message : ''}`;
+    $('#pdf-done').hidden = false; $('#pdf-open').hidden = true;
+  } finally {
+    $('#pdf-spin').hidden = true;
+    document.body.classList.remove('pdf-capture');
+    if (entered) exitReport();
+    window.scrollTo(0, restoreScroll);
+  }
+}
 
 function setupExport() {
   const dlg = $('#export-dlg');
@@ -772,12 +952,14 @@ function setupExport() {
     if (e.submitter && e.submitter.value === 'cancel') return;
     const withNatal = $('#exp-natal').checked, withSyn = $('#exp-syn').checked;
     if (!withNatal && !withSyn) { e.preventDefault(); const er = $('#export-error'); er.textContent = 'Marca al menos una sección.'; er.hidden = false; return; }
+    const how = e.submitter ? e.submitter.value : 'download';
     dlg.addEventListener('close', () => {
-      enterReport(withNatal, withSyn, false);
-      setTimeout(() => window.print(), 300);
+      if (how === 'print') { enterReport(withNatal, withSyn, false); setTimeout(() => window.print(), 300); }
+      else downloadPDF(withNatal, withSyn);
     }, { once: true });
   });
   $('#report-print').addEventListener('click', () => window.print());
+  $('#pdf-close').addEventListener('click', () => { $('#pdf-overlay').hidden = true; });
   $('#report-exit').addEventListener('click', exitReport);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && report && !dlg.open) exitReport(); });
 }
