@@ -76,6 +76,7 @@ function setupTabs(group, fallback) {
 /* ── Formularios de persona ───────────────────────────────────────── */
 const EXAMPLES = [
   { id: 'ex-juanita', example: true, name: 'Juanita', date: '2006-09-21', time: '21:00', unknown: false, city: 'Popayán|Colombia' },
+  { id: 'ex-sergio', example: true, name: 'Sergio', date: '1981-04-21', time: '02:00', unknown: false, city: 'Concepción|Chile' },
 ];
 const findCity = (id) => CITIES.find((c) => `${c.name}|${c.country}` === id) || null;
 let TZS = [];
@@ -875,10 +876,9 @@ function boot() {
   $('#house-system').value = store.get('houseSystem', 'placidus');
   // Datos recordados de visitas anteriores, salvo ejemplos que ya no existen
   const remembered = (k) => { const r = store.get(k, null); return r && r.example && !EXAMPLES.some((e) => e.name === r.name && e.date === r.date) ? null : r; };
-  const blank = { name: '', date: '', time: '', unknown: false, city: null, example: false };
   fillPerson('n', remembered('natal') || exampleRaw(0));
   fillPerson('a', remembered('synA') || exampleRaw(0));
-  fillPerson('b', remembered('synB') || blank);
+  fillPerson('b', remembered('synB') || exampleRaw(1));
 
   const hash = (location.hash || '').slice(1);
   if (['natal', 'sinastria', 'guardados'].includes(hash)) tabState.main = hash;
