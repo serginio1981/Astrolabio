@@ -8,6 +8,7 @@
     <nav class="main-tabs" role="tablist" aria-label="Módulo" data-group="main">
       <button role="tab" id="tab-main-natal" data-tab="natal" aria-controls="view-natal">Carta natal</button>
       <button role="tab" id="tab-main-sinastria" data-tab="sinastria" aria-controls="view-sinastria">Comparar cartas</button>
+      <button role="tab" id="tab-main-guardados" data-tab="guardados" aria-controls="view-guardados">Guardados</button>
     </nav>
     <button class="btn small export-btn" type="button" id="export-btn">Exportar PDF</button>
   </div>
@@ -130,6 +131,23 @@
         <section class="panel" role="tabpanel" data-group="syn" data-panel="elementos" id="s-elementos"></section>
         <section class="panel" role="tabpanel" data-group="syn" data-panel="compat" id="s-compat"></section>
       </div>
+    </div>
+  </section>
+
+  <!-- ═══ GUARDADOS ═══ -->
+  <section class="view" id="view-guardados" role="tabpanel" data-group="main" data-panel="guardados" aria-labelledby="tab-main-guardados">
+    <div class="saved-wrap">
+      <div class="section-title"><h2>Resultados guardados</h2><span class="note" id="saved-count"></span></div>
+      <p class="panel-intro" id="saved-intro">Cartas natales y comparaciones guardadas en la nube de claude.ai. Todas las personas que abren este enlace las ven.</p>
+      <div class="saved-tools" id="saved-tools" hidden>
+        <div class="chips" id="saved-filter" role="group" aria-label="Filtrar guardados">
+          <button type="button" class="chip" data-f="all" aria-pressed="true">Todos</button>
+          <button type="button" class="chip" data-f="natal" aria-pressed="false">Cartas natales</button>
+          <button type="button" class="chip" data-f="comparacion" aria-pressed="false">Comparaciones</button>
+        </div>
+        <input type="search" id="saved-search" placeholder="Buscar por nombre o nota" aria-label="Buscar en guardados">
+      </div>
+      <div class="saved-list" id="saved-list"><div class="empty-state">Cargando resultados guardados…</div></div>
     </div>
   </section>
 

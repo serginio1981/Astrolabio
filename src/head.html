@@ -105,7 +105,7 @@ details.form-card[open] > summary .chev { transform: rotate(180deg); }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .row3 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (min-width: 420px) { .row3 { grid-template-columns: 1fr 1fr 1.4fr; } }
-input[type="text"], input[type="date"], input[type="time"], input[type="number"], select {
+input[type="text"], input[type="search"], input[type="date"], input[type="time"], input[type="number"], select {
   width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; font-size: 16px; line-height: 1.2;
 }
 input:disabled { opacity: .5; }
@@ -258,6 +258,25 @@ table.agrid th.ang, table.agrid td.ang { font-family: var(--f-mono); font-size: 
   .brand h1 { font-size: 1.35rem; }
   .main-tabs [role="tab"] { padding: 7px 12px; }
 }
+/* Guardado en la nube */
+.cloud-only { display: none; }
+body.has-db .cloud-only { display: grid; }
+.save-row { gap: 6px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.save-row textarea { width: 100%; min-width: 0; resize: vertical; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; font: inherit; font-size: 16px; line-height: 1.4; color: var(--ink); }
+body.db-readonly .save-row { display: none; }
+.save-status { min-height: 1.2em; }
+.note-view { display: none; white-space: pre-wrap; font-size: .9rem; border-left: 3px solid var(--brass); padding: 4px 0 4px 10px; }
+.saved-wrap { display: grid; gap: 16px; }
+.saved-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.saved-tools input { width: auto; flex: 1 1 220px; max-width: 360px; }
+.saved-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); align-items: start; }
+.saved-item { gap: 8px; }
+.saved-item h3 { font-size: 1.2rem; }
+.saved-note { white-space: pre-wrap; font-size: .9rem; background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+.saved-line { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .9rem; }
+.saved-line .sg { gap: 4px; }
+.mini-areas { display: flex; flex-wrap: wrap; gap: 4px; }
+
 /* Exportación */
 .export-btn { margin-left: auto; }
 dialog { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); padding: 0; width: min(440px, calc(100vw - 32px)); }
@@ -269,11 +288,12 @@ dialog::backdrop { background: rgba(10, 14, 24, .5); }
 .report-bar p { font-size: .88rem; }
 
 /* Vista de informe: todas las pestañas, una tras otra */
-body.report .top, body.report .side, body.report details.form-card, body.report .subtabs, body.report .chips, body.report #bi-center { display: none !important; }
+body.report .save-row, body.report .top, body.report .side, body.report details.form-card, body.report .subtabs, body.report .chips, body.report #bi-center { display: none !important; }
 body.report .print-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-top: 16px; color: var(--muted); font-size: .85rem; }
 body.report .print-brand { font-family: var(--f-display); font-size: 1.3rem; color: var(--ink); }
 body.report .layout, body.report .layout.syn { display: block; }
 body.report .content > [role="tabpanel"] { margin-top: 36px; }
+body.report .note-view.has-note { display: block; }
 .report-title { font-size: 1.6rem; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
 
 /* Captura para PDF: ancho fijo y tema claro, sea cual sea el dispositivo */
@@ -307,7 +327,7 @@ body.report.p-natal.p-syn #view-sinastria { margin-top: 48px; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { font-size: 10.5pt; background: #FFFFFF; }
   .wrap { max-width: none; padding: 0; }
-  .report-bar, dialog, .suggest, .top, .side, details.form-card, .subtabs, .chips, #bi-center, .export-btn { display: none !important; }
+  .save-row, .report-bar, dialog, .suggest, .top, .side, details.form-card, .subtabs, .chips, #bi-center, .export-btn { display: none !important; }
   .print-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 0 0 14px; font-size: 9pt; color: var(--muted); }
   .print-brand { font-family: var(--f-display); font-size: 14pt; color: var(--ink); }
   .view { padding-top: 0; }

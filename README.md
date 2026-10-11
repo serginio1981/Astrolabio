@@ -20,6 +20,12 @@ En el mismo diálogo queda la opción **Usar la impresión del navegador** (text
 
 En la versión publicada en claude.ai la descarga pasa por la capacidad `downloads` del visor, que muestra un aviso de confirmación. Fuera de claude.ai se descarga directamente.
 
+### Resultados guardados
+
+En la versión publicada en claude.ai, cada carta natal y cada comparación tiene un campo **Notas** y un botón **Guardar resultado**. Se guardan en la base de datos del artefacto (capacidad `db` del visor, colección `resultados`) y aparecen en la pestaña **Guardados**, con buscador y filtros, para todas las personas que abren el enlace. Desde ahí se pueden abrir, actualizar o borrar. Cada documento guarda los datos de nacimiento, el sistema de casas, un resumen (Sol, Luna, Ascendente y posiciones, o afinidad y puntuaciones por área), la nota y quién lo guardó.
+
+Pueden guardar el propietario y quien tenga acceso de colaborador; el resto ve los resultados en modo lectura. Fuera de claude.ai no hay base de datos: «Guardar persona» guarda los datos solo en el navegador.
+
 ## Desarrollo
 
 El código fuente está en `src/` y se une en `index.html` con:

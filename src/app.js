@@ -374,7 +374,8 @@ function summaryHTML(ch, data, extra = '') {
 
 function renderNatal() {
   const { chart: ch, data } = natal;
-  $('#natal-summary').innerHTML = summaryHTML(ch, data);
+  $('#natal-summary').innerHTML = summaryHTML(ch, data) + saveRowHTML('n');
+  bindSaveRow('n');
   const notes = [];
   if (ch.unknownTime) notes.push('Sin hora de nacimiento no se calculan Ascendente ni casas, y la Luna puede variar hasta ±6° respecto a lo mostrado (calculado a mediodía).');
   if (ch.houseNote) notes.push(ch.houseNote);
@@ -481,6 +482,7 @@ function computeNatal() {
   if (res.error) { err.textContent = res.error; err.hidden = false; return false; }
   err.hidden = true;
   natal = { data: res.data, chart: computeChart({ ...res.data, houseSystem: $('#house-system').value }) };
+  if (saved.n && saved.n.key !== personKey(rawPerson('n'))) saved.n = null;
   store.set('natal', rawPerson('n')); store.set('houseSystem', $('#house-system').value);
   renderNatal();
   return true;
@@ -558,7 +560,8 @@ function renderSyn() {
   $('#syn-summary').innerHTML = `<div class="score">${scoreRing(score.overall)}<div style="display:grid;gap:6px;min-width:0">
       <span class="eyebrow">Afinidad global · ${scoreLabel(score.overall)}</span><h2>${esc(nA)} y ${esc(nB)}</h2>
       <p class="note">${cross.filter((a) => ASP[a.type].nature === 'armónico').length} aspectos armónicos, ${cross.filter((a) => ASP[a.type].nature === 'tenso').length} tensos y ${cross.filter((a) => a.type === 'conj').length} conjunciones entre ambas cartas.</p></div></div>
-    <div class="pillars" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${whoRow(A, dA, 'a')}${whoRow(B, dB, 'b')}</div>`;
+    <div class="pillars" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${whoRow(A, dA, 'a')}${whoRow(B, dB, 'b')}</div>` + saveRowHTML('s');
+  bindSaveRow('s');
 
   // Doble rueda
   const drawBi = () => {
@@ -673,9 +676,188 @@ function computeSyn() {
   const A = computeChart({ ...ra.data, houseSystem: hs }), B = computeChart({ ...rb.data, houseSystem: hs });
   const cross = findAspects(A.pos, B.pos, true);
   syn = { A, B, dA: ra.data, dB: rb.data, cross, score: scoreSyn(A, B, cross) };
+  if (saved.s && saved.s.key !== personKey(rawPerson('a')) + '|' + personKey(rawPerson('b'))) saved.s = null;
   store.set('synA', rawPerson('a')); store.set('synB', rawPerson('b'));
   renderSyn();
   return true;
+}
+
+/* ── Guardado en la nube (capacidad db del visor de claude.ai) ─────── */
+const capOf = (name) => (window.claude && typeof window.claude.use === 'function' ? window.claude.use(name).catch(() => null) : Promise.resolve(null));
+const dbCap = capOf('db'), userCap = capOf('user');
+const saved = { n: null, s: null }, notes = { n: '', s: '' };
+let savedDocs = [], savedFilter = 'all', canWrite = true, confirmDel = null;
+const personKey = (r) => JSON.stringify([r.name, r.date, r.time, r.unknown, r.city, r.lat, r.lon, r.city ? '' : r.tz]);
+const cleanRaw = (r) => ({ name: r.name, date: r.date, time: r.time, unknown: !!r.unknown, city: r.city || null, placeText: r.placeText || '', lat: r.lat || '', lon: r.lon || '', tz: r.tz || '' });
+const fmtStamp = (iso) => { try { return new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)); } catch (e) { return ''; } };
+
+function saveRowHTML(k) {
+  const what = k === 'n' ? 'esta carta' : 'esta comparación';
+  return `<div class="save-row cloud-only">
+      <label class="lbl" for="${k}-note">Notas</label>
+      <textarea id="${k}-note" rows="2" placeholder="Tus observaciones sobre ${what}">${esc(notes[k])}</textarea>
+      <div class="actions">
+        <button class="btn primary small save-btn" type="button" id="${k}-save">${saved[k] ? 'Actualizar guardado' : 'Guardar resultado'}</button>
+        ${saved[k] ? `<button class="btn small save-btn" type="button" id="${k}-save-new">Guardar como nuevo</button>` : ''}
+        <span class="note save-status" id="${k}-save-status" role="status">${saved[k] ? 'Abierto desde Guardados.' : ''}</span>
+      </div>
+    </div>
+    <p class="note-view${notes[k].trim() ? ' has-note' : ''}">${esc(notes[k])}</p>`;
+}
+function bindSaveRow(k) {
+  const ta = $(`#${k}-note`);
+  ta.addEventListener('input', () => { notes[k] = ta.value; });
+  $(`#${k}-save`).addEventListener('click', () => saveResult(k, false));
+  const sn = $(`#${k}-save-new`);
+  if (sn) sn.addEventListener('click', () => saveResult(k, true));
+}
+
+function resultDoc(k) {
+  const now = new Date().toISOString();
+  const hs = $('#house-system').value;
+  if (k === 'n') {
+    const ch = natal.chart, pos = {};
+    for (const key in ch.pos) pos[key] = Math.round(ch.pos[key].lon * 100) / 100;
+    const res = (key) => (ch.pos[key] ? { signo: signOf(ch.pos[key].lon).key, grados: fmtDeg(ch.pos[key].lon, false) } : null);
+    return { tipo: 'natal', nombre: natal.data.name, datos: cleanRaw(rawPerson('n')), sistemaCasas: hs,
+      resumen: { sun: res('sun'), moon: res('moon'), asc: res('asc') }, posiciones: pos, nota: notes.n.trim(), updatedAt: now };
+  }
+  const areas = Object.fromEntries(CATEGORIES.map((c) => [c.key, syn.score.cats[c.key].score]));
+  return { tipo: 'comparacion', nombre: `${syn.dA.name} y ${syn.dB.name}`, datosA: cleanRaw(rawPerson('a')), datosB: cleanRaw(rawPerson('b')), sistemaCasas: hs,
+    resumen: { afinidad: syn.score.overall, etiqueta: scoreLabel(syn.score.overall), elementos: syn.score.elemScore, areas,
+      solA: signOf(syn.A.pos.sun.lon).key, solB: signOf(syn.B.pos.sun.lon).key }, nota: notes.s.trim(), updatedAt: now };
+}
+
+async function saveResult(k, asNew) {
+  const st = $(`#${k}-save-status`), db = await dbCap;
+  if (!db || (k === 'n' ? !natal : !syn)) return;
+  $$(`#${k}-save, #${k}-save-new`).forEach((b) => { b.disabled = true; });
+  st.textContent = 'Guardando…';
+  const body = resultDoc(k);
+  const prev = asNew ? null : saved[k];
+  const u = await userCap;
+  body.createdAt = prev ? prev.createdAt : body.updatedAt;
+  body.createdBy = prev ? prev.createdBy : (u ? await u.id() : null);
+  const ref = prev ? db.collection('resultados').doc(prev.id) : db.collection('resultados').doc();
+  const attempt = () => ref.set(body);
+  try {
+    try { await attempt(); } catch (err) {
+      if (err && err.code === 'unavailable') { await new Promise((r) => setTimeout(r, 600 + Math.random() * 600)); await attempt(); } else throw err;
+    }
+    const key = k === 'n' ? personKey(rawPerson('n')) : personKey(rawPerson('a')) + '|' + personKey(rawPerson('b'));
+    saved[k] = { id: ref.id, createdAt: body.createdAt, createdBy: body.createdBy, key };
+    if (k === 'n') renderNatal(); else renderSyn();
+    $(`#${k}-save-status`).textContent = `Guardado el ${fmtStamp(body.updatedAt)}. Lo encontrarás en «Guardados».`;
+  } catch (err) {
+    const code = err && err.code;
+    if (code === 'invalid_argument') { canWrite = false; document.body.classList.add('db-readonly'); }
+    st.textContent = code === 'invalid_argument' ? 'Tu acceso a este enlace es de solo lectura: puedes ver los guardados, pero no guardar.'
+      : code === 'quota_exceeded' ? 'Se llegó al límite de resultados guardados. Borra algunos en «Guardados» para guardar nuevos.'
+      : 'No se pudo guardar. Revisa la conexión e inténtalo de nuevo.';
+    $$(`#${k}-save, #${k}-save-new`).forEach((b) => { b.disabled = false; });
+  }
+}
+
+function savedCardHTML(d) {
+  const isNatal = d.tipo === 'natal';
+  const r = d.resumen || {};
+  let line = '';
+  if (isNatal) {
+    const sp = (x, label) => { if (!x || !x.signo) return ''; const sg = SIGNS.find((z) => z.key === x.signo); return sg ? `<span class="sg">${label} ${sgl(sg)} ${sg.name} <span class="mono muted">${esc(x.grados)}</span></span>` : ''; };
+    const dd = d.datos || {};
+    line = `<div class="saved-line">${sp(r.sun, '☉' + VS)}${sp(r.moon, '☽' + VS)}${sp(r.asc, 'AC')}</div>
+      <p class="note">${/^\d{4}-\d{2}-\d{2}$/.test(dd.date || '') ? fmtDate(+dd.date.slice(0, 4), +dd.date.slice(5, 7), +dd.date.slice(8, 10)) : esc(dd.date || '')}${dd.unknown ? ' · hora desconocida' : dd.time ? ' · ' + esc(dd.time) : ''}${dd.city ? ' · ' + esc(dd.city.split('|')[0]) : dd.placeText ? ' · ' + esc(dd.placeText) : ''}</p>`;
+  } else {
+    const areas = r.areas || {};
+    line = `<div class="saved-line"><span><b class="mono">${Number(r.afinidad) || 0}</b><span class="muted">/100</span> · ${esc(r.etiqueta || '')}</span></div>
+      <div class="mini-areas">${CATEGORIES.filter((c) => areas[c.key] != null).map((c) => `<span class="badge">${c.name} ${Number(areas[c.key])}</span>`).join('')}</div>`;
+  }
+  const del = confirmDel === d.id
+    ? `<span class="note">¿Borrar para todos?</span><button class="btn small" type="button" data-del-yes="${esc(d.id)}">Sí, borrar</button><button class="btn small" type="button" data-del-no>No</button>`
+    : (canWrite ? `<button class="btn small" type="button" data-del="${esc(d.id)}">Borrar</button>` : '');
+  return `<article class="item saved-item">
+    <div class="section-title"><span class="badge ${isNatal ? 'exa' : 'dom'}">${isNatal ? 'Carta natal' : 'Comparación'}</span><span class="note">${esc(fmtStamp(d.updatedAt))}</span></div>
+    <h3>${esc(d.nombre || 'Sin nombre')}</h3>
+    ${line}
+    ${d.nota ? `<p class="saved-note">${esc(d.nota)}</p>` : ''}
+    <p class="note">Guardado por <span data-uid="${esc(d.createdBy || '')}">alguien</span></p>
+    <div class="actions"><button class="btn primary small" type="button" data-open="${esc(d.id)}">Abrir</button>${del}</div>
+  </article>`;
+}
+
+async function renderSaved() {
+  const q = normTxt($('#saved-search').value || '');
+  const list = savedDocs.filter((d) => (savedFilter === 'all' || d.tipo === savedFilter) &&
+    (!q || normTxt(`${d.nombre || ''} ${d.nota || ''}`).includes(q)));
+  $('#saved-count').textContent = savedDocs.length ? `${savedDocs.length} en total` : '';
+  $('#saved-list').innerHTML = list.length ? list.map(savedCardHTML).join('')
+    : `<div class="empty-state">${savedDocs.length ? 'Ningún resultado coincide con la búsqueda.' : 'Todavía no hay resultados guardados. Calcula una carta o una comparación y pulsa «Guardar resultado».'}</div>`;
+  const u = await userCap;
+  const ids = [...new Set($$('#saved-list [data-uid]').map((e) => e.dataset.uid).filter(Boolean))];
+  if (u && ids.length) {
+    const ps = await u.profiles(ids);
+    $$('#saved-list [data-uid]').forEach((e) => { const p = ps[e.dataset.uid]; if (p) e.textContent = p.isMe ? 'ti' : (p.name || 'alguien'); });
+  }
+}
+
+function openSaved(id) {
+  const d = savedDocs.find((x) => x.id === id);
+  if (!d) return;
+  if (d.sistemaCasas) $('#house-system').value = d.sistemaCasas;
+  if (d.tipo === 'natal') {
+    fillPerson('n', { ...d.datos, example: false });
+    notes.n = d.nota || '';
+    saved.n = { id: d.id, createdAt: d.createdAt, createdBy: d.createdBy, key: personKey(rawPerson('n')) };
+    if (!computeNatal()) return;
+    activate('main', 'natal');
+  } else {
+    fillPerson('a', { ...d.datosA, example: false }); fillPerson('b', { ...d.datosB, example: false });
+    notes.s = d.nota || '';
+    saved.s = { id: d.id, createdAt: d.createdAt, createdBy: d.createdBy, key: personKey(rawPerson('a')) + '|' + personKey(rawPerson('b')) };
+    if (!computeSyn()) return;
+    activate('main', 'sinastria');
+  }
+  window.scrollTo(0, 0);
+}
+
+async function initCloud() {
+  $('#saved-filter').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    savedFilter = b.dataset.f; $$('#saved-filter .chip').forEach((c) => c.setAttribute('aria-pressed', c === b)); renderSaved();
+  });
+  $('#saved-search').addEventListener('input', () => renderSaved());
+  $('#saved-list').addEventListener('click', async (e) => {
+    const t = e.target.closest('button'); if (!t) return;
+    if (t.dataset.open) openSaved(t.dataset.open);
+    else if (t.dataset.del) { confirmDel = t.dataset.del; renderSaved(); }
+    else if (t.hasAttribute('data-del-no')) { confirmDel = null; renderSaved(); }
+    else if (t.dataset.delYes) {
+      const db = await dbCap; const id = t.dataset.delYes; confirmDel = null;
+      try { await db.collection('resultados').doc(id).delete(); if (saved.n && saved.n.id === id) saved.n = null; if (saved.s && saved.s.id === id) saved.s = null; }
+      catch (err) { $('#saved-count').textContent = 'No se pudo borrar. Inténtalo de nuevo.'; }
+      renderSaved();
+    }
+  });
+
+  const db = await dbCap;
+  if (!db) {
+    $('#saved-intro').textContent = 'Los resultados se guardan en la nube cuando abres Astrolabio desde su enlace de claude.ai con la sesión iniciada. En esta copia puedes usar «Guardar persona», que guarda los datos de nacimiento solo en este navegador.';
+    $('#saved-list').innerHTML = '';
+    return;
+  }
+  document.body.classList.add('has-db');
+  $('#saved-tools').hidden = false;
+  const u = await userCap;
+  const can = u ? await u.can('data.write') : null;
+  canWrite = can !== false;
+  if (!canWrite) {
+    document.body.classList.add('db-readonly');
+    $('#saved-intro').textContent += ' Tu acceso es de solo lectura: puedes ver y abrir los resultados, pero no guardar ni borrar.';
+  }
+  db.collection('resultados').orderBy('updatedAt', 'desc').limit(500).onSnapshot(
+    (snap) => { savedDocs = snap.docs.map((x) => ({ id: x.id, ...x.data() })); renderSaved(); },
+    () => { $('#saved-list').innerHTML = '<div class="empty-state">No se pudieron cargar los resultados guardados. Recarga la página.</div>'; },
+  );
 }
 
 /* ── Arranque ─────────────────────────────────────────────────────── */
@@ -697,7 +879,7 @@ function boot() {
   fillPerson('b', store.get('synB', null) || exampleRaw(1));
 
   const hash = (location.hash || '').slice(1);
-  if (hash === 'natal' || hash === 'sinastria') tabState.main = hash;
+  if (['natal', 'sinastria', 'guardados'].includes(hash)) tabState.main = hash;
   setupTabs('main', 'natal'); setupTabs('natal', 'rueda'); setupTabs('syn', 'birueda');
 
   if (!computeNatal()) { fillPerson('n', exampleRaw(0)); computeNatal(); }
@@ -740,6 +922,7 @@ function enterReport(withNatal, withSyn, auto) {
   });
   $('#view-natal').hidden = !withNatal;
   $('#view-sinastria').hidden = !withSyn;
+  $('#view-guardados').hidden = true;
   document.body.classList.add('report');
   document.body.classList.toggle('p-natal', withNatal);
   document.body.classList.toggle('p-syn', withSyn);
@@ -996,3 +1179,4 @@ function setupExport() {
 
 boot();
 setupExport();
+initCloud();
