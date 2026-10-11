@@ -1,0 +1,1602 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Astrolabio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=swap">
+<style>
+/* Layout: almanaque de bolsillo — una columna en móvil; en escritorio, ficha de datos a la izquierda y lámina con pestañas a la derecha */
+:root {
+  --bg: #ECEFF3;
+  --surface: #F8F9FB;
+  --surface-2: #E2E6ED;
+  --ink: #1A2236;
+  --muted: #59627A;
+  --line: #C9D0DC;
+  --brass: #8E621B;
+  --brass-soft: #F0E3C8;
+  --on-brass: #FFFFFF;
+  --fire: #B5432A;  --fire-soft: #F4DED6;
+  --earth: #56702F; --earth-soft: #E0E8D2;
+  --air: #8F6F0E;   --air-soft: #F2EACB;
+  --water: #2B6090; --water-soft: #D5E2EF;
+  --harm: #2B6090;
+  --tense: #B03838;
+  --minor: #7A8295;
+  --ring-a: #1A2236;
+  --ring-b: #8E621B;
+
+  --f-display: 'Marcellus', 'Cormorant Garamond', Georgia, serif;
+  --f-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --f-sym: 'Noto Sans Symbols', 'Noto Sans Symbols 2', 'Segoe UI Symbol', 'Apple Symbols', sans-serif;
+
+  --r: 10px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1320; --surface: #151C2B; --surface-2: #1D2638; --ink: #E7E2D4; --muted: #97A0B5; --line: #2B3549;
+    --brass: #D6A852; --brass-soft: #2F2717; --on-brass: #17120A;
+    --fire: #E37C61; --fire-soft: #3A2520; --earth: #A0BC70; --earth-soft: #233021;
+    --air: #DDBF58; --air-soft: #362E17; --water: #72A9D8; --water-soft: #1A2B3E;
+    --harm: #72A9D8; --tense: #E46D6D; --minor: #808A9E; --ring-a: #E7E2D4; --ring-b: #D6A852;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1320; --surface: #151C2B; --surface-2: #1D2638; --ink: #E7E2D4; --muted: #97A0B5; --line: #2B3549;
+  --brass: #D6A852; --brass-soft: #2F2717; --on-brass: #17120A;
+  --fire: #E37C61; --fire-soft: #3A2520; --earth: #A0BC70; --earth-soft: #233021;
+  --air: #DDBF58; --air-soft: #362E17; --water: #72A9D8; --water-soft: #1A2B3E;
+  --harm: #72A9D8; --tense: #E46D6D; --minor: #808A9E; --ring-a: #E7E2D4; --ring-b: #D6A852;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 0 48px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; margin: 0; letter-spacing: .01em; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0; }
+.gl { font-family: var(--f-sym); font-style: normal; line-height: 1; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.eyebrow { font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 500; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+/* Cabecera */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1180px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 { font-size: 1.55rem; }
+.brand svg { width: 30px; height: 30px; flex: none; }
+.main-tabs { display: flex; background: var(--surface-2); border-radius: 999px; padding: 3px; gap: 2px; }
+.main-tabs [role="tab"] { border: 0; background: transparent; padding: 7px 16px; border-radius: 999px; cursor: pointer; font-weight: 500; font-size: .92rem; color: var(--muted); white-space: nowrap; }
+.main-tabs [role="tab"][aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+/* Disposición */
+.view { padding-top: var(--s5); }
+.layout { display: grid; grid-template-columns: 1fr; gap: var(--s5); align-items: start; }
+.layout > * { min-width: 0; }
+@media (min-width: 980px) {
+  .layout { grid-template-columns: 340px 1fr; }
+  .side { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); }
+  .layout.syn { grid-template-columns: 1fr; }
+}
+
+/* Ficha de datos */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+details.form-card > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+details.form-card > summary::-webkit-details-marker { display: none; }
+details.form-card > summary .chev { transition: transform .2s; color: var(--muted); }
+details.form-card[open] > summary .chev { transform: rotate(180deg); }
+.form-body { padding: 0 16px 16px; display: grid; gap: 12px; }
+.persons { display: grid; gap: 16px; grid-template-columns: 1fr; padding: 0 16px 16px; }
+@media (min-width: 760px) { .persons { grid-template-columns: 1fr 1fr; } }
+.person { display: grid; gap: 12px; align-content: start; }
+.person + .person { border-top: 1px dashed var(--line); padding-top: 16px; }
+@media (min-width: 760px) { .person + .person { border-top: 0; padding-top: 0; border-left: 1px dashed var(--line); padding-left: 16px; } }
+.person-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.tag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .lbl { font-size: .8rem; color: var(--muted); font-weight: 500; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (min-width: 420px) { .row3 { grid-template-columns: 1fr 1fr 1.4fr; } }
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], select {
+  width: 100%; min-width: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; font-size: 16px; line-height: 1.2;
+}
+input:disabled { opacity: .5; }
+.check { display: flex; align-items: center; gap: 8px; font-size: .88rem; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--brass); }
+.place { position: relative; }
+.suggest { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); max-height: 260px; overflow-y: auto; padding: 4px; margin: 0; list-style: none; }
+.suggest li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+.suggest li[aria-selected="true"], .suggest li:hover { background: var(--surface-2); }
+.suggest small { color: var(--muted); }
+details.manual { font-size: .88rem; }
+details.manual summary { cursor: pointer; color: var(--muted); }
+details.manual .row3 { margin-top: 8px; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 9px 14px; cursor: pointer; font-weight: 500; }
+.btn:hover { border-color: var(--brass); }
+.btn.primary { background: var(--brass); border-color: var(--brass); color: var(--on-brass); }
+.btn.primary:hover { filter: brightness(1.07); }
+.btn.small { padding: 5px 10px; font-size: .84rem; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.error { color: var(--tense); font-size: .88rem; }
+.note { font-size: .84rem; color: var(--muted); }
+
+/* Resumen */
+.summary { padding: 16px; display: grid; gap: 10px; }
+.summary h2 { font-size: 1.7rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .84rem; color: var(--muted); }
+.pillars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pillar { background: var(--bg); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+.pillar .eyebrow { font-size: .66rem; }
+.pillar b { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pillar .gl { font-size: 1.1rem; }
+
+/* Pestañas secundarias */
+.subtabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); margin-bottom: var(--s4); -webkit-overflow-scrolling: touch; }
+.subtabs::-webkit-scrollbar { display: none; }
+.subtabs [role="tab"] { border: 0; background: transparent; padding: 10px 14px; cursor: pointer; white-space: nowrap; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; flex: none; }
+.subtabs [role="tab"][aria-selected="true"] { color: var(--ink); border-bottom-color: var(--brass); }
+.subtabs [role="tab"]:hover { color: var(--ink); }
+.panel { display: grid; gap: var(--s5); }
+.panel > * { min-width: 0; }
+.panel-intro { max-width: 68ch; color: var(--muted); font-size: .92rem; }
+
+/* Rueda */
+.wheel-box { display: grid; gap: 12px; justify-items: center; }
+.wheel { width: 100%; max-width: 620px; height: auto; display: block; }
+.wheel text { font-family: var(--f-body); }
+.wheel .zs { stroke: var(--line); stroke-width: 1; }
+.wheel .fire { fill: var(--fire-soft); } .wheel .earth { fill: var(--earth-soft); } .wheel .air { fill: var(--air-soft); } .wheel .water { fill: var(--water-soft); }
+.wheel .tfire { fill: var(--fire); } .wheel .tearth { fill: var(--earth); } .wheel .tair { fill: var(--air); } .wheel .twater { fill: var(--water); }
+.wheel .zg { font-family: var(--f-sym); font-size: 20px; }
+.wheel .ring { fill: none; stroke: var(--line); stroke-width: 1; }
+.wheel .ring.strong { stroke: var(--muted); }
+.wheel .disc { fill: var(--surface); }
+.wheel .tick { stroke: var(--muted); stroke-width: .8; }
+.wheel .cusp { stroke: var(--line); stroke-width: 1; }
+.wheel .cusp.ang { stroke: var(--ink); stroke-width: 1.6; }
+.wheel .hn { fill: var(--muted); font-size: 11px; font-family: var(--f-mono); }
+.wheel .angl { fill: var(--ink); font-size: 12px; font-weight: 600; font-family: var(--f-mono); }
+.wheel .pg { font-family: var(--f-sym); font-size: 21px; }
+.wheel .pd { font-size: 10px; font-family: var(--f-mono); }
+.wheel .ra { fill: var(--ring-a); } .wheel .rb { fill: var(--ring-b); }
+.wheel .sa { stroke: var(--ring-a); } .wheel .sb { stroke: var(--ring-b); }
+.wheel .lead { stroke-width: .7; opacity: .55; }
+.wheel .asp { fill: none; stroke-width: 1.3; }
+.wheel .asp.harm { stroke: var(--harm); } .wheel .asp.tense { stroke: var(--tense); } .wheel .asp.minor { stroke: var(--minor); stroke-dasharray: 4 3; } .wheel .asp.conj { stroke: var(--brass); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .82rem; color: var(--muted); justify-content: center; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+
+/* Tablas */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; background: var(--surface-2); }
+td.wrap-cell { white-space: normal; min-width: 220px; }
+.pname { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; }
+.pname .gl { width: 1.3em; text-align: center; font-size: 1.15rem; }
+.sg { display: inline-flex; align-items: center; gap: 5px; }
+.el-fuego { color: var(--fire); } .el-tierra { color: var(--earth); } .el-aire { color: var(--air); } .el-agua { color: var(--water); }
+.badge { display: inline-block; font-size: .72rem; padding: 2px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-weight: 500; }
+.badge.retro { background: var(--fire-soft); color: var(--fire); }
+.badge.dom { background: var(--earth-soft); color: var(--earth); }
+.badge.exa { background: var(--water-soft); color: var(--water); }
+.badge.exi, .badge.cai { background: var(--fire-soft); color: var(--fire); }
+.badge.harm { background: var(--water-soft); color: var(--harm); }
+.badge.tense { background: var(--fire-soft); color: var(--tense); }
+.badge.minor, .badge.mixto { background: var(--surface-2); color: var(--muted); }
+
+/* Rejilla de aspectos */
+.grid-wrap { overflow-x: auto; }
+table.agrid { width: auto; font-size: .82rem; border: 0; background: transparent; }
+table.agrid td, table.agrid th { border: 1px solid var(--line); padding: 0; width: 38px; height: 38px; min-width: 38px; text-align: center; background: var(--surface); }
+table.agrid th { background: var(--surface-2); }
+table.agrid td.empty { background: transparent; border-color: transparent; }
+table.agrid td.diag, table.agrid th { font-family: var(--f-sym); font-size: 1.05rem; color: var(--ink); text-transform: none; letter-spacing: 0; }
+table.agrid th.ang, table.agrid td.ang { font-family: var(--f-mono); font-size: .72rem; font-weight: 600; }
+.cell { display: grid; line-height: 1.05; }
+.cell .gl { font-size: 1.05rem; }
+.cell small { font-size: .62rem; font-family: var(--f-mono); color: var(--muted); }
+.c-harm { color: var(--harm); } .c-tense { color: var(--tense); } .c-minor { color: var(--minor); } .c-mixto { color: var(--brass); }
+
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--surface); padding: 5px 12px; border-radius: 999px; font-size: .84rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Listas de lectura */
+.reading { display: grid; gap: 12px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px; }
+.item h3 { display: flex; align-items: center; gap: 8px; font-size: 1.12rem; flex-wrap: wrap; }
+.item p { max-width: 70ch; }
+.item .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: .9rem; }
+.item .kv dt { color: var(--muted); }
+.item .kv dd { margin: 0; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* Barras */
+.bars { display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 96px 1fr 44px; gap: 10px; align-items: center; font-size: .9rem; }
+.bar .track { height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 999px; background: var(--brass); }
+.bar .val { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: .84rem; }
+.bar .who { font-size: .76rem; color: var(--muted); }
+.fill.fuego { background: var(--fire); } .fill.tierra { background: var(--earth); } .fill.aire { background: var(--air); } .fill.agua { background: var(--water); }
+.fill.a { background: var(--ring-a); } .fill.b { background: var(--ring-b); }
+.dual .track { display: grid; gap: 2px; background: transparent; height: auto; }
+.dual .track > div { height: 7px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+
+/* Compatibilidad */
+.score { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; }
+.score-ring { width: 112px; height: 112px; }
+.score-ring .bgc { fill: none; stroke: var(--surface-2); stroke-width: 10; }
+.score-ring .fgc { fill: none; stroke: var(--brass); stroke-width: 10; stroke-linecap: round; }
+.score-ring text { fill: var(--ink); font-family: var(--f-display); font-size: 30px; }
+.cat { display: grid; gap: 6px; }
+.cat-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.cat-head b { font-weight: 600; }
+.cat p { font-size: .88rem; color: var(--muted); }
+
+.empty-state { padding: 32px 16px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: var(--r); }
+.foot { margin-top: 40px; font-size: .8rem; color: var(--muted); max-width: 80ch; }
+.sample { display: inline-block; font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--brass); border: 1px solid var(--brass); border-radius: 4px; padding: 1px 6px; vertical-align: middle; }
+
+@media (max-width: 520px) {
+  .pillars { grid-template-columns: 1fr; }
+  .pillar b { white-space: normal; }
+  .bar { grid-template-columns: 78px 1fr 40px; }
+  .score { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .brand h1 { font-size: 1.35rem; }
+  .main-tabs [role="tab"] { padding: 7px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="var(--brass)" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="none" stroke="var(--brass)" stroke-width="1"/><path d="M20 3v34M3 20h34" stroke="var(--brass)" stroke-width="1"/><path d="M9 31L31 9" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="20" r="2.5" fill="var(--ink)"/></svg>
+      <h1>Astrolabio</h1>
+    </div>
+    <nav class="main-tabs" role="tablist" aria-label="Módulo" data-group="main">
+      <button role="tab" id="tab-main-natal" data-tab="natal" aria-controls="view-natal">Carta natal</button>
+      <button role="tab" id="tab-main-sinastria" data-tab="sinastria" aria-controls="view-sinastria">Comparar cartas</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ═══ CARTA NATAL ═══ -->
+  <section class="view" id="view-natal" role="tabpanel" data-group="main" data-panel="natal" aria-labelledby="tab-main-natal">
+    <div class="layout">
+      <aside class="side">
+        <details class="card form-card" id="natal-form-card" open>
+          <summary><span><span class="eyebrow">Datos de nacimiento</span></span><span class="chev" aria-hidden="true">▾</span></summary>
+          <form class="form-body" id="natal-form" novalidate>
+            <div data-person="n"></div>
+            <div class="field">
+              <label for="house-system">Sistema de casas</label>
+              <select id="house-system">
+                <option value="placidus">Placidus</option>
+                <option value="equal">Casas iguales</option>
+                <option value="whole">Signo entero</option>
+              </select>
+            </div>
+            <p class="error" id="natal-error" hidden></p>
+            <div class="actions">
+              <button class="btn primary" type="submit">Calcular carta</button>
+              <button class="btn" type="button" id="natal-save">Guardar persona</button>
+            </div>
+            <p class="note" id="natal-saved" hidden></p>
+          </form>
+        </details>
+      </aside>
+
+      <div class="content" id="natal-content">
+        <div class="card summary" id="natal-summary"></div>
+        <div style="height:16px"></div>
+        <div class="subtabs" role="tablist" aria-label="Secciones de la carta" data-group="natal">
+          <button role="tab" data-tab="rueda">Rueda</button>
+          <button role="tab" data-tab="planetas">Planetas</button>
+          <button role="tab" data-tab="casas">Casas</button>
+          <button role="tab" data-tab="aspectos">Aspectos</button>
+          <button role="tab" data-tab="equilibrio">Equilibrio</button>
+          <button role="tab" data-tab="lectura">Lectura</button>
+        </div>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="rueda" id="n-rueda"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="planetas" id="n-planetas"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="casas" id="n-casas"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="aspectos" id="n-aspectos"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="equilibrio" id="n-equilibrio"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="lectura" id="n-lectura"></section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SINASTRÍA ═══ -->
+  <section class="view" id="view-sinastria" role="tabpanel" data-group="main" data-panel="sinastria" aria-labelledby="tab-main-sinastria">
+    <div class="layout syn">
+      <details class="card form-card" id="syn-form-card" open>
+        <summary><span class="eyebrow">Las dos personas</span><span class="chev" aria-hidden="true">▾</span></summary>
+        <form id="syn-form" novalidate>
+          <div class="persons">
+            <div class="person" data-person="a"></div>
+            <div class="person" data-person="b"></div>
+          </div>
+          <div class="form-body" style="padding-top:0">
+            <p class="error" id="syn-error" hidden></p>
+            <div class="actions">
+              <button class="btn primary" type="submit">Comparar cartas</button>
+              <button class="btn" type="button" id="syn-swap">Intercambiar A y B</button>
+            </div>
+          </div>
+        </form>
+      </details>
+
+      <div class="content" id="syn-content">
+        <div class="card summary" id="syn-summary"></div>
+        <div style="height:16px"></div>
+        <div class="subtabs" role="tablist" aria-label="Secciones de la comparación" data-group="syn">
+          <button role="tab" data-tab="birueda">Doble rueda</button>
+          <button role="tab" data-tab="aspectos">Aspectos cruzados</button>
+          <button role="tab" data-tab="casas">Casas superpuestas</button>
+          <button role="tab" data-tab="compuesta">Carta compuesta</button>
+          <button role="tab" data-tab="elementos">Elementos</button>
+          <button role="tab" data-tab="compat">Compatibilidad</button>
+        </div>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="birueda" id="s-birueda"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="aspectos" id="s-aspectos"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="casas" id="s-casas"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="compuesta" id="s-compuesta"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="elementos" id="s-elementos"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="compat" id="s-compat"></section>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">Zodiaco tropical, posiciones geocéntricas aparentes calculadas en tu navegador con Astronomy Engine. Nodo Norte y Lilith son medios. El horario de verano histórico se toma de la base de zonas horarias del navegador. Las lecturas son orientativas y sirven para reflexionar, no para tomar decisiones.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script>
+/* ── Ciudades: nombre|país|lat|lon|zona ─────────────────────────────── */
+const CITY_DATA = `Madrid|España|40.4168|-3.7038|Europe/Madrid
+Barcelona|España|41.3874|2.1686|Europe/Madrid
+Valencia|España|39.4699|-0.3763|Europe/Madrid
+Sevilla|España|37.3891|-5.9845|Europe/Madrid
+Zaragoza|España|41.6488|-0.8891|Europe/Madrid
+Málaga|España|36.7213|-4.4214|Europe/Madrid
+Murcia|España|37.9922|-1.1307|Europe/Madrid
+Palma|España|39.5696|2.6502|Europe/Madrid
+Bilbao|España|43.2630|-2.9350|Europe/Madrid
+Alicante|España|38.3452|-0.4810|Europe/Madrid
+Córdoba|España|37.8882|-4.7794|Europe/Madrid
+Valladolid|España|41.6523|-4.7245|Europe/Madrid
+Vigo|España|42.2406|-8.7207|Europe/Madrid
+Gijón|España|43.5322|-5.6611|Europe/Madrid
+A Coruña|España|43.3623|-8.4115|Europe/Madrid
+Granada|España|37.1773|-3.5986|Europe/Madrid
+Oviedo|España|43.3619|-5.8494|Europe/Madrid
+Pamplona|España|42.8125|-1.6458|Europe/Madrid
+San Sebastián|España|43.3183|-1.9812|Europe/Madrid
+Santander|España|43.4623|-3.8100|Europe/Madrid
+Salamanca|España|40.9701|-5.6635|Europe/Madrid
+Toledo|España|39.8628|-4.0273|Europe/Madrid
+Cádiz|España|36.5271|-6.2886|Europe/Madrid
+Almería|España|36.8340|-2.4637|Europe/Madrid
+Badajoz|España|38.8794|-6.9707|Europe/Madrid
+León|España|42.5987|-5.5671|Europe/Madrid
+Logroño|España|42.4627|-2.4450|Europe/Madrid
+Santiago de Compostela|España|42.8782|-8.5448|Europe/Madrid
+Las Palmas de Gran Canaria|España|28.1235|-15.4363|Atlantic/Canary
+Santa Cruz de Tenerife|España|28.4636|-16.2518|Atlantic/Canary
+Ciudad de México|México|19.4326|-99.1332|America/Mexico_City
+Guadalajara|México|20.6597|-103.3496|America/Mexico_City
+Monterrey|México|25.6866|-100.3161|America/Monterrey
+Puebla|México|19.0414|-98.2063|America/Mexico_City
+Tijuana|México|32.5149|-117.0382|America/Tijuana
+León|México|21.1250|-101.6860|America/Mexico_City
+Mérida|México|20.9674|-89.5926|America/Merida
+Cancún|México|21.1619|-86.8515|America/Cancun
+Querétaro|México|20.5888|-100.3899|America/Mexico_City
+Oaxaca|México|17.0732|-96.7266|America/Mexico_City
+Veracruz|México|19.1738|-96.1342|America/Mexico_City
+Chihuahua|México|28.6320|-106.0691|America/Chihuahua
+Hermosillo|México|29.0729|-110.9559|America/Hermosillo
+Culiacán|México|24.8091|-107.3940|America/Mazatlan
+Morelia|México|19.7060|-101.1950|America/Mexico_City
+Toluca|México|19.2826|-99.6557|America/Mexico_City
+San Luis Potosí|México|22.1565|-100.9855|America/Mexico_City
+Aguascalientes|México|21.8853|-102.2916|America/Mexico_City
+Acapulco|México|16.8531|-99.8237|America/Mexico_City
+Buenos Aires|Argentina|-34.6037|-58.3816|America/Argentina/Buenos_Aires
+Córdoba|Argentina|-31.4201|-64.1888|America/Argentina/Cordoba
+Rosario|Argentina|-32.9442|-60.6505|America/Argentina/Cordoba
+Mendoza|Argentina|-32.8895|-68.8458|America/Argentina/Mendoza
+La Plata|Argentina|-34.9205|-57.9536|America/Argentina/Buenos_Aires
+Mar del Plata|Argentina|-38.0055|-57.5426|America/Argentina/Buenos_Aires
+San Miguel de Tucumán|Argentina|-26.8083|-65.2176|America/Argentina/Tucuman
+Salta|Argentina|-24.7821|-65.4232|America/Argentina/Salta
+Neuquén|Argentina|-38.9516|-68.0591|America/Argentina/Salta
+Santiago|Chile|-33.4489|-70.6693|America/Santiago
+Valparaíso|Chile|-33.0472|-71.6127|America/Santiago
+Concepción|Chile|-36.8201|-73.0444|America/Santiago
+Antofagasta|Chile|-23.6509|-70.3975|America/Santiago
+La Serena|Chile|-29.9027|-71.2519|America/Santiago
+Temuco|Chile|-38.7359|-72.5904|America/Santiago
+Bogotá|Colombia|4.7110|-74.0721|America/Bogota
+Medellín|Colombia|6.2442|-75.5812|America/Bogota
+Cali|Colombia|3.4516|-76.5320|America/Bogota
+Barranquilla|Colombia|10.9685|-74.7813|America/Bogota
+Cartagena|Colombia|10.3910|-75.4794|America/Bogota
+Bucaramanga|Colombia|7.1193|-73.1227|America/Bogota
+Pereira|Colombia|4.8133|-75.6961|America/Bogota
+Lima|Perú|-12.0464|-77.0428|America/Lima
+Arequipa|Perú|-16.4090|-71.5375|America/Lima
+Cusco|Perú|-13.5320|-71.9675|America/Lima
+Trujillo|Perú|-8.1091|-79.0215|America/Lima
+Piura|Perú|-5.1945|-80.6328|America/Lima
+Caracas|Venezuela|10.4806|-66.9036|America/Caracas
+Maracaibo|Venezuela|10.6427|-71.6125|America/Caracas
+Valencia|Venezuela|10.1620|-68.0077|America/Caracas
+Barquisimeto|Venezuela|10.0678|-69.3474|America/Caracas
+Quito|Ecuador|-0.1807|-78.4678|America/Guayaquil
+Guayaquil|Ecuador|-2.1709|-79.9224|America/Guayaquil
+Cuenca|Ecuador|-2.9001|-79.0059|America/Guayaquil
+La Paz|Bolivia|-16.4897|-68.1193|America/La_Paz
+Santa Cruz de la Sierra|Bolivia|-17.8146|-63.1561|America/La_Paz
+Cochabamba|Bolivia|-17.4139|-66.1653|America/La_Paz
+Sucre|Bolivia|-19.0196|-65.2619|America/La_Paz
+Asunción|Paraguay|-25.2637|-57.5759|America/Asuncion
+Montevideo|Uruguay|-34.9011|-56.1645|America/Montevideo
+La Habana|Cuba|23.1136|-82.3666|America/Havana
+Santiago de Cuba|Cuba|20.0247|-75.8219|America/Havana
+Santo Domingo|República Dominicana|18.4861|-69.9312|America/Santo_Domingo
+Santiago de los Caballeros|República Dominicana|19.4517|-70.6970|America/Santo_Domingo
+San Juan|Puerto Rico|18.4655|-66.1057|America/Puerto_Rico
+Ciudad de Guatemala|Guatemala|14.6349|-90.5069|America/Guatemala
+San Salvador|El Salvador|13.6929|-89.2182|America/El_Salvador
+Tegucigalpa|Honduras|14.0723|-87.1921|America/Tegucigalpa
+San Pedro Sula|Honduras|15.5050|-88.0250|America/Tegucigalpa
+Managua|Nicaragua|12.1150|-86.2362|America/Managua
+San José|Costa Rica|9.9281|-84.0907|America/Costa_Rica
+Ciudad de Panamá|Panamá|8.9824|-79.5199|America/Panama
+Malabo|Guinea Ecuatorial|3.7504|8.7371|Africa/Malabo
+Nueva York|Estados Unidos|40.7128|-74.0060|America/New_York
+Los Ángeles|Estados Unidos|34.0522|-118.2437|America/Los_Angeles
+Chicago|Estados Unidos|41.8781|-87.6298|America/Chicago
+Miami|Estados Unidos|25.7617|-80.1918|America/New_York
+Houston|Estados Unidos|29.7604|-95.3698|America/Chicago
+San Antonio|Estados Unidos|29.4241|-98.4936|America/Chicago
+Dallas|Estados Unidos|32.7767|-96.7970|America/Chicago
+Phoenix|Estados Unidos|33.4484|-112.0740|America/Phoenix
+San Francisco|Estados Unidos|37.7749|-122.4194|America/Los_Angeles
+San Diego|Estados Unidos|32.7157|-117.1611|America/Los_Angeles
+Seattle|Estados Unidos|47.6062|-122.3321|America/Los_Angeles
+Denver|Estados Unidos|39.7392|-104.9903|America/Denver
+Washington D. C.|Estados Unidos|38.9072|-77.0369|America/New_York
+Boston|Estados Unidos|42.3601|-71.0589|America/New_York
+Atlanta|Estados Unidos|33.7490|-84.3880|America/New_York
+Las Vegas|Estados Unidos|36.1699|-115.1398|America/Los_Angeles
+El Paso|Estados Unidos|31.7619|-106.4850|America/Denver
+Toronto|Canadá|43.6532|-79.3832|America/Toronto
+Montreal|Canadá|45.5019|-73.5674|America/Toronto
+Vancouver|Canadá|49.2827|-123.1207|America/Vancouver
+São Paulo|Brasil|-23.5505|-46.6333|America/Sao_Paulo
+Río de Janeiro|Brasil|-22.9068|-43.1729|America/Sao_Paulo
+Brasilia|Brasil|-15.7939|-47.8828|America/Sao_Paulo
+Lisboa|Portugal|38.7223|-9.1393|Europe/Lisbon
+Oporto|Portugal|41.1579|-8.6291|Europe/Lisbon
+Andorra la Vella|Andorra|42.5063|1.5218|Europe/Andorra
+Londres|Reino Unido|51.5074|-0.1278|Europe/London
+Mánchester|Reino Unido|53.4808|-2.2426|Europe/London
+Dublín|Irlanda|53.3498|-6.2603|Europe/Dublin
+París|Francia|48.8566|2.3522|Europe/Paris
+Marsella|Francia|43.2965|5.3698|Europe/Paris
+Lyon|Francia|45.7640|4.8357|Europe/Paris
+Toulouse|Francia|43.6047|1.4442|Europe/Paris
+Burdeos|Francia|44.8378|-0.5792|Europe/Paris
+Bruselas|Bélgica|50.8503|4.3517|Europe/Brussels
+Ámsterdam|Países Bajos|52.3676|4.9041|Europe/Amsterdam
+Berlín|Alemania|52.5200|13.4050|Europe/Berlin
+Múnich|Alemania|48.1351|11.5820|Europe/Berlin
+Fráncfort|Alemania|50.1109|8.6821|Europe/Berlin
+Hamburgo|Alemania|53.5511|9.9937|Europe/Berlin
+Zúrich|Suiza|47.3769|8.5417|Europe/Zurich
+Ginebra|Suiza|46.2044|6.1432|Europe/Zurich
+Viena|Austria|48.2082|16.3738|Europe/Vienna
+Roma|Italia|41.9028|12.4964|Europe/Rome
+Milán|Italia|45.4642|9.1900|Europe/Rome
+Nápoles|Italia|40.8518|14.2681|Europe/Rome
+Atenas|Grecia|37.9838|23.7275|Europe/Athens
+Estocolmo|Suecia|59.3293|18.0686|Europe/Stockholm
+Oslo|Noruega|59.9139|10.7522|Europe/Oslo
+Copenhague|Dinamarca|55.6761|12.5683|Europe/Copenhagen
+Helsinki|Finlandia|60.1699|24.9384|Europe/Helsinki
+Varsovia|Polonia|52.2297|21.0122|Europe/Warsaw
+Praga|Chequia|50.0755|14.4378|Europe/Prague
+Budapest|Hungría|47.4979|19.0402|Europe/Budapest
+Bucarest|Rumanía|44.4268|26.1025|Europe/Bucharest
+Kiev|Ucrania|50.4501|30.5234|Europe/Kyiv
+Moscú|Rusia|55.7558|37.6173|Europe/Moscow
+Estambul|Turquía|41.0082|28.9784|Europe/Istanbul
+Tel Aviv|Israel|32.0853|34.7818|Asia/Jerusalem
+El Cairo|Egipto|30.0444|31.2357|Africa/Cairo
+Casablanca|Marruecos|33.5731|-7.5898|Africa/Casablanca
+Lagos|Nigeria|6.5244|3.3792|Africa/Lagos
+Nairobi|Kenia|-1.2921|36.8219|Africa/Nairobi
+Johannesburgo|Sudáfrica|-26.2041|28.0473|Africa/Johannesburg
+Dubái|Emiratos Árabes Unidos|25.2048|55.2708|Asia/Dubai
+Bombay|India|19.0760|72.8777|Asia/Kolkata
+Nueva Delhi|India|28.6139|77.2090|Asia/Kolkata
+Bangkok|Tailandia|13.7563|100.5018|Asia/Bangkok
+Singapur|Singapur|1.3521|103.8198|Asia/Singapore
+Yakarta|Indonesia|-6.2088|106.8456|Asia/Jakarta
+Manila|Filipinas|14.5995|120.9842|Asia/Manila
+Hong Kong|China|22.3193|114.1694|Asia/Hong_Kong
+Shanghái|China|31.2304|121.4737|Asia/Shanghai
+Pekín|China|39.9042|116.4074|Asia/Shanghai
+Seúl|Corea del Sur|37.5665|126.9780|Asia/Seoul
+Tokio|Japón|35.6762|139.6503|Asia/Tokyo
+Sídney|Australia|-33.8688|151.2093|Australia/Sydney
+Melbourne|Australia|-37.8136|144.9631|Australia/Melbourne
+Perth|Australia|-31.9505|115.8605|Australia/Perth
+Auckland|Nueva Zelanda|-36.8485|174.7633|Pacific/Auckland`;
+const CITIES = CITY_DATA.split('\n').map((l) => {
+  const [name, country, lat, lon, tz] = l.split('|');
+  return { name, country, lat: +lat, lon: +lon, tz };
+});
+
+/* ── Textos de interpretación ─────────────────────────────────────── */
+const SIGN_TEXT = {
+  aries: { kw: 'impulso, coraje, franqueza', style: 'con iniciativa, valentía y algo de impaciencia', strong: 'Arranca proyectos, defiende lo suyo y contagia energía.', challenge: 'Sostener lo que empieza y escuchar antes de reaccionar.' },
+  tauro: { kw: 'constancia, sensualidad, calma', style: 'de forma estable, sensual y paciente', strong: 'Construye a largo plazo, da seguridad y disfruta de lo concreto.', challenge: 'Soltar la resistencia al cambio y la posesividad.' },
+  geminis: { kw: 'curiosidad, ingenio, versatilidad', style: 'con curiosidad, agilidad mental y ganas de conversar', strong: 'Conecta ideas y personas, aprende rápido y comunica con gracia.', challenge: 'Profundizar y comprometerse sin dispersarse.' },
+  cancer: { kw: 'sensibilidad, cuidado, memoria', style: 'de forma protectora, emotiva e intuitiva', strong: 'Cuida, crea hogar y percibe lo que sienten los demás.', challenge: 'No encerrarse por miedo a sufrir ni vivir anclado en el pasado.' },
+  leo: { kw: 'creatividad, orgullo, generosidad', style: 'con calidez, teatralidad y deseo de brillar', strong: 'Inspira, lidera con el corazón y celebra la vida.', challenge: 'No depender del aplauso y dejar brillar a los demás.' },
+  virgo: { kw: 'análisis, servicio, precisión', style: 'con método, sentido práctico y atención al detalle', strong: 'Mejora lo que toca, organiza y ayuda de forma útil.', challenge: 'Soltar la autocrítica y el perfeccionismo.' },
+  libra: { kw: 'armonía, diplomacia, estética', style: 'con elegancia, tacto y búsqueda de equilibrio', strong: 'Media en conflictos, crea belleza y tiene en cuenta al otro.', challenge: 'Decidir sin depender de la aprobación ajena.' },
+  escorpio: { kw: 'intensidad, profundidad, poder', style: 'con intensidad, reserva y pasión', strong: 'Va al fondo de las cosas, se regenera y es leal hasta el final.', challenge: 'Confiar y soltar el control, los celos o el rencor.' },
+  sagitario: { kw: 'expansión, fe, aventura', style: 'con entusiasmo, optimismo y sed de sentido', strong: 'Abre horizontes, enseña y contagia esperanza.', challenge: 'Cumplir lo prometido y no huir de los límites.' },
+  capricornio: { kw: 'ambición, disciplina, responsabilidad', style: 'con seriedad, estrategia y perseverancia', strong: 'Alcanza metas difíciles, es fiable y administra bien el tiempo.', challenge: 'Permitirse disfrutar y mostrar vulnerabilidad.' },
+  acuario: { kw: 'libertad, originalidad, comunidad', style: 'de forma independiente, original y algo distante', strong: 'Innova, piensa en el colectivo y respeta la diferencia.', challenge: 'Conectar con sus propias emociones y no rebelarse por sistema.' },
+  piscis: { kw: 'empatía, imaginación, entrega', style: 'con sensibilidad, compasión y fantasía', strong: 'Comprende sin juzgar, crea y conecta con lo sutil.', challenge: 'Poner límites y no evadirse de la realidad.' },
+};
+
+const PLANET_MEANING = {
+  sun: 'tu identidad y propósito vital', moon: 'tus emociones y necesidades íntimas', mercury: 'tu forma de pensar y comunicar',
+  venus: 'tu manera de amar y lo que valoras', mars: 'tu impulso, tu deseo y tu forma de actuar', jupiter: 'tu fe y tu manera de crecer',
+  saturn: 'tus responsabilidades y lecciones de madurez', uranus: 'tu necesidad de libertad y cambio', neptune: 'tu sensibilidad, tus ideales y tu inspiración',
+  pluto: 'tu capacidad de transformación profunda', node: 'la dirección de crecimiento que te reta', lilith: 'lo que reprimes o reclamas con fuerza',
+  asc: 'la imagen que proyectas', mc: 'tu vocación y tu meta pública',
+};
+const PLANET_SHORT = {
+  sun: 'identidad', moon: 'emociones', mercury: 'mente', venus: 'afecto', mars: 'deseo', jupiter: 'expansión', saturn: 'compromiso',
+  uranus: 'libertad', neptune: 'idealismo', pluto: 'intensidad', node: 'destino', lilith: 'instinto', asc: 'presencia', mc: 'proyección',
+};
+
+const HOUSE_NAME = ['Identidad', 'Recursos', 'Comunicación', 'Hogar', 'Creatividad', 'Rutina y salud', 'Pareja', 'Transformación', 'Horizontes', 'Vocación', 'Amistades', 'Inconsciente'];
+const HOUSE_THEME = [
+  'la identidad, el cuerpo y la forma de presentarte', 'el dinero, los recursos y la autoestima', 'la comunicación, los hermanos y el entorno cercano',
+  'el hogar, la familia y las raíces', 'la creatividad, el romance, el juego y los hijos', 'el trabajo diario, la salud y los hábitos',
+  'la pareja, los socios y los acuerdos', 'la intimidad, las crisis y los recursos compartidos', 'los viajes, los estudios superiores y las creencias',
+  'la carrera, la vocación y la imagen pública', 'las amistades, los grupos y los proyectos de futuro', 'el inconsciente, el retiro y la vida espiritual',
+];
+
+const ASPECT_VERB = {
+  conj: 'se funden en una sola fuerza', tri: 'fluyen juntas con naturalidad', sex: 'colaboran cuando les das ocasión',
+  sq: 'chocan y te empujan a actuar', opp: 'tiran en direcciones opuestas y piden equilibrio', qx: 'necesitan ajustes constantes', ssx: 'se rozan de forma sutil',
+};
+
+const PILLAR_INTRO = {
+  sun: (s) => `Tu Sol en ${s} describe tu esencia y aquello que vienes a desarrollar.`,
+  moon: (s) => `Tu Luna en ${s} muestra cómo sientes, qué necesitas para estar en calma y cómo te cuidas.`,
+  asc: (s) => `Tu Ascendente en ${s} es la primera impresión que das y la forma en que te lanzas a la vida.`,
+};
+
+const DIGNITY = {
+  sun: { dom: ['leo'], exa: ['aries'] }, moon: { dom: ['cancer'], exa: ['tauro'] }, mercury: { dom: ['geminis', 'virgo'], exa: ['virgo'] },
+  venus: { dom: ['tauro', 'libra'], exa: ['piscis'] }, mars: { dom: ['aries', 'escorpio'], exa: ['capricornio'] },
+  jupiter: { dom: ['sagitario', 'piscis'], exa: ['cancer'] }, saturn: { dom: ['capricornio', 'acuario'], exa: ['libra'] },
+  uranus: { dom: ['acuario'], exa: [] }, neptune: { dom: ['piscis'], exa: [] }, pluto: { dom: ['escorpio'], exa: [] },
+};
+
+const ELEMENT_TEXT = {
+  fuego: 'Fuego: entusiasmo, acción y confianza. Te mueves por la inspiración.',
+  tierra: 'Tierra: sentido práctico, constancia y apego a lo tangible.',
+  aire: 'Aire: ideas, palabras y relaciones. Necesitas comprender y compartir.',
+  agua: 'Agua: emoción, intuición y vínculo. Sientes antes de pensar.',
+};
+const ELEMENT_LACK = {
+  fuego: 'Con poco fuego puede costarte arrancar o confiar en ti sin pruebas.',
+  tierra: 'Con poca tierra lo concreto (dinero, horarios, cuerpo) pide atención consciente.',
+  aire: 'Con poco aire cuesta tomar distancia y poner en palabras lo que vives.',
+  agua: 'Con poca agua las emociones pueden quedar en segundo plano o resultar ajenas.',
+};
+const MODE_TEXT = {
+  cardinal: 'Cardinal: tomas la iniciativa y abres caminos.',
+  fijo: 'Fijo: sostienes, profundizas y resistes el cambio.',
+  mutable: 'Mutable: te adaptas, conectas y te transformas con facilidad.',
+};
+
+const SYN_PAIR = {
+  'sun-moon': 'la identidad de una persona y el mundo emocional de la otra', 'venus-mars': 'la atracción y el deseo',
+  'moon-moon': 'los ritmos emocionales y los hábitos', 'mercury-mercury': 'la forma de pensar y de hablar',
+  'venus-venus': 'los gustos y la forma de dar cariño', 'sun-sun': 'los propósitos y el orgullo', 'moon-venus': 'la ternura y el afecto',
+  'mars-mars': 'la energía y la manera de discutir', 'sun-venus': 'la admiración y el afecto', 'sun-mars': 'el empuje y el liderazgo',
+  'moon-mars': 'la emoción y el deseo', 'mercury-moon': 'la escucha y la comprensión mutua', 'mercury-sun': 'la comprensión de quién es el otro',
+  'mercury-venus': 'la conversación amable y el humor', 'sun-asc': 'el reconocimiento inmediato', 'moon-asc': 'la sensación de familiaridad',
+  'venus-asc': 'el gusto por cómo se ve el otro', 'mars-asc': 'la química física',
+};
+const SYN_PLANET = {
+  saturn: 'el compromiso, los límites y la estabilidad', jupiter: 'el crecimiento y la generosidad', pluto: 'la intensidad y la transformación mutua',
+  uranus: 'la sorpresa, la libertad y la chispa', neptune: 'el idealismo, la inspiración y la confusión posible', node: 'la sensación de encuentro destinado',
+  lilith: 'la fascinación y lo no dicho',
+};
+const SYN_NATURE = {
+  armónico: 'facilita', tenso: 'genera roces y también chispa en', mixto: 'intensifica', menor: 'matiza',
+};
+
+const CATEGORIES = [
+  { key: 'atraccion', name: 'Atracción', desc: 'Química entre Venus, Marte, el Sol y el Ascendente.' },
+  { key: 'emocion', name: 'Emociones', desc: 'Sintonía de la Luna: sentirse en casa con el otro.' },
+  { key: 'comunicacion', name: 'Comunicación', desc: 'Contactos de Mercurio: entenderse al hablar.' },
+  { key: 'compromiso', name: 'Compromiso', desc: 'Saturno y los luminares: estabilidad y lealtad.' },
+  { key: 'crecimiento', name: 'Crecimiento', desc: 'Júpiter y los nodos: lo que la relación os ayuda a ampliar.' },
+];
+/* ── Motor astronómico ─────────────────────────────────────────────── */
+const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const norm = (x) => ((x % 360) + 360) % 360;
+const sind = (x) => Math.sin(x * D2R), cosd = (x) => Math.cos(x * D2R), tand = (x) => Math.tan(x * D2R);
+const atan2d = (y, x) => Math.atan2(y, x) * R2D;
+const asind = (x) => Math.asin(Math.max(-1, Math.min(1, x))) * R2D;
+const angDist = (a, b) => { const d = Math.abs(norm(a) - norm(b)) % 360; return d > 180 ? 360 - d : d; };
+
+const SIGNS = [
+  { key: 'aries', name: 'Aries', glyph: '♈', el: 'fuego', mod: 'cardinal', ruler: 'mars' },
+  { key: 'tauro', name: 'Tauro', glyph: '♉', el: 'tierra', mod: 'fijo', ruler: 'venus' },
+  { key: 'geminis', name: 'Géminis', glyph: '♊', el: 'aire', mod: 'mutable', ruler: 'mercury' },
+  { key: 'cancer', name: 'Cáncer', glyph: '♋', el: 'agua', mod: 'cardinal', ruler: 'moon' },
+  { key: 'leo', name: 'Leo', glyph: '♌', el: 'fuego', mod: 'fijo', ruler: 'sun' },
+  { key: 'virgo', name: 'Virgo', glyph: '♍', el: 'tierra', mod: 'mutable', ruler: 'mercury' },
+  { key: 'libra', name: 'Libra', glyph: '♎', el: 'aire', mod: 'cardinal', ruler: 'venus' },
+  { key: 'escorpio', name: 'Escorpio', glyph: '♏', el: 'agua', mod: 'fijo', ruler: 'pluto' },
+  { key: 'sagitario', name: 'Sagitario', glyph: '♐', el: 'fuego', mod: 'mutable', ruler: 'jupiter' },
+  { key: 'capricornio', name: 'Capricornio', glyph: '♑', el: 'tierra', mod: 'cardinal', ruler: 'saturn' },
+  { key: 'acuario', name: 'Acuario', glyph: '♒', el: 'aire', mod: 'fijo', ruler: 'uranus' },
+  { key: 'piscis', name: 'Piscis', glyph: '♓', el: 'agua', mod: 'mutable', ruler: 'neptune' },
+];
+
+const BODIES = [
+  { key: 'sun', name: 'Sol', glyph: '☉', astro: 'Sun', w: 2, orbBonus: 2 },
+  { key: 'moon', name: 'Luna', glyph: '☽', astro: 'Moon', w: 2, orbBonus: 2 },
+  { key: 'mercury', name: 'Mercurio', glyph: '☿', astro: 'Mercury', w: 1 },
+  { key: 'venus', name: 'Venus', glyph: '♀', astro: 'Venus', w: 1 },
+  { key: 'mars', name: 'Marte', glyph: '♂', astro: 'Mars', w: 1 },
+  { key: 'jupiter', name: 'Júpiter', glyph: '♃', astro: 'Jupiter', w: 1 },
+  { key: 'saturn', name: 'Saturno', glyph: '♄', astro: 'Saturn', w: 1 },
+  { key: 'uranus', name: 'Urano', glyph: '♅', astro: 'Uranus', w: 0.5 },
+  { key: 'neptune', name: 'Neptuno', glyph: '♆', astro: 'Neptune', w: 0.5 },
+  { key: 'pluto', name: 'Plutón', glyph: '♇', astro: 'Pluto', w: 0.5 },
+  { key: 'node', name: 'Nodo Norte', glyph: '☊', w: 0, minor: true },
+  { key: 'lilith', name: 'Lilith', glyph: '⚸', w: 0, minor: true },
+  { key: 'asc', name: 'Ascendente', glyph: 'AC', w: 2, angle: true },
+  { key: 'mc', name: 'Medio Cielo', glyph: 'MC', w: 1, angle: true },
+];
+const BODY = Object.fromEntries(BODIES.map((b) => [b.key, b]));
+
+const ASPECTS = [
+  { key: 'conj', name: 'Conjunción', glyph: '☌', angle: 0, orb: 8, nature: 'mixto' },
+  { key: 'opp', name: 'Oposición', glyph: '☍', angle: 180, orb: 8, nature: 'tenso' },
+  { key: 'tri', name: 'Trígono', glyph: '△', angle: 120, orb: 7, nature: 'armónico' },
+  { key: 'sq', name: 'Cuadratura', glyph: '□', angle: 90, orb: 7, nature: 'tenso' },
+  { key: 'sex', name: 'Sextil', glyph: '⚹', angle: 60, orb: 5, nature: 'armónico' },
+  { key: 'qx', name: 'Quincuncio', glyph: '⚻', angle: 150, orb: 3, nature: 'menor' },
+  { key: 'ssx', name: 'Semisextil', glyph: '⚺', angle: 30, orb: 2, nature: 'menor' },
+];
+
+const signOf = (lon) => SIGNS[Math.floor(norm(lon) / 30)];
+function fmtDeg(lon, withSign = true) {
+  const l = norm(lon), d = Math.floor(l % 30), mFull = (l % 30 - d) * 60;
+  let m = Math.round(mFull), dd = d;
+  if (m === 60) { m = 0; dd += 1; }
+  return `${dd}°${String(m).padStart(2, '0')}′` + (withSign ? ' ' + signOf(l).name : '');
+}
+
+/* Convierte fecha/hora local en una zona IANA a instante UTC */
+function tzOffsetMinutes(utcMs, tz) {
+  const f = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+  const p = Object.fromEntries(f.formatToParts(new Date(utcMs)).map((x) => [x.type, x.value]));
+  const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+  return Math.round((asUTC - utcMs) / 60000);
+}
+function localToUTC(y, mo, d, h, mi, zone) {
+  const naive = Date.UTC(y, mo - 1, d, h, mi);
+  if (typeof zone === 'number') return { ms: naive - zone * 60000, offset: zone };
+  let off = tzOffsetMinutes(naive, zone);
+  off = tzOffsetMinutes(naive - off * 60000, zone);
+  return { ms: naive - off * 60000, offset: off };
+}
+
+function eclipticLon(bodyName, time) {
+  const v = Astronomy.GeoVector(bodyName, time, true);
+  const rot = Astronomy.Rotation_EQJ_ECT(time);
+  return norm(Astronomy.SphereFromVector(Astronomy.RotateVector(rot, v)).lon);
+}
+
+/* Placidus: iteración por semiarcos */
+function placidusCusp(ramc, eps, phi, frac, above) {
+  let ra = above ? ramc + frac * 90 : ramc + 180 - frac * 90;
+  for (let i = 0; i < 60; i++) {
+    const lon = norm(atan2d(sind(ra), cosd(ra) * cosd(eps)));
+    const dec = asind(sind(eps) * sind(lon));
+    const x = tand(phi) * tand(dec);
+    if (Math.abs(x) >= 1) return null;
+    const ad = asind(x);
+    const next = above ? ramc + frac * (90 + ad) : ramc + 180 - frac * (90 - ad);
+    if (Math.abs(norm(next - ra + 180) - 180) < 1e-7) { ra = next; break; }
+    ra = next;
+  }
+  return norm(atan2d(sind(ra), cosd(ra) * cosd(eps)));
+}
+
+function computeChart(input) {
+  const { y, mo, d, h, mi, zone, lat, lon, unknownTime, houseSystem = 'placidus' } = input;
+  const { ms, offset } = localToUTC(y, mo, d, unknownTime ? 12 : h, unknownTime ? 0 : mi, zone);
+  const date = new Date(ms);
+  const time = Astronomy.MakeTime(date);
+  const T = (time.tt) / 36525;
+  const pos = {};
+  const tPrev = Astronomy.MakeTime(new Date(ms - 43200000)), tNext = Astronomy.MakeTime(new Date(ms + 43200000));
+  for (const b of BODIES) {
+    if (!b.astro) continue;
+    const l = eclipticLon(b.astro, time);
+    let speed = norm(eclipticLon(b.astro, tNext) - eclipticLon(b.astro, tPrev) + 180) - 180;
+    pos[b.key] = { lon: l, speed, retro: speed < 0 && b.key !== 'sun' && b.key !== 'moon' };
+  }
+  const node = norm(125.04452 - 1934.136261 * T + 0.0020708 * T * T + (T * T * T) / 450000);
+  pos.node = { lon: node, speed: -0.053, retro: true };
+  const perigee = 83.3532465 + 4069.0137287 * T - 0.01032 * T * T - (T * T * T) / 80053;
+  pos.lilith = { lon: norm(perigee + 180), speed: 0.111, retro: false };
+
+  const eps = 23.4392911 - 0.0130042 * T - 1.64e-7 * T * T;
+  let houses = null, asc = null, mc = null, houseNote = null, usedSystem = houseSystem;
+  if (!unknownTime) {
+    const gast = Astronomy.SiderealTime(time);
+    const ramc = norm(gast * 15 + lon);
+    mc = norm(atan2d(sind(ramc), cosd(ramc) * cosd(eps)));
+    asc = norm(atan2d(cosd(ramc), -(sind(ramc) * cosd(eps) + tand(lat) * sind(eps))));
+    pos.asc = { lon: asc, speed: 0 };
+    pos.mc = { lon: mc, speed: 0 };
+    if (houseSystem === 'placidus') {
+      const c11 = placidusCusp(ramc, eps, lat, 1 / 3, true), c12 = placidusCusp(ramc, eps, lat, 2 / 3, true);
+      const c2 = placidusCusp(ramc, eps, lat, 2 / 3, false), c3 = placidusCusp(ramc, eps, lat, 1 / 3, false);
+      if ([c11, c12, c2, c3].some((c) => c === null)) {
+        usedSystem = 'equal';
+        houseNote = 'Placidus no es calculable a esta latitud; se usan casas iguales.';
+      } else {
+        houses = [asc, c2, c3, norm(mc + 180), norm(c11 + 180), norm(c12 + 180), norm(asc + 180), norm(c2 + 180), norm(c3 + 180), mc, c11, c12];
+      }
+    }
+    if (usedSystem === 'equal') houses = Array.from({ length: 12 }, (_, i) => norm(asc + 30 * i));
+    if (usedSystem === 'whole') houses = Array.from({ length: 12 }, (_, i) => norm(Math.floor(asc / 30) * 30 + 30 * i));
+  }
+  for (const k in pos) pos[k].house = houses ? houseOf(pos[k].lon, houses) : null;
+  return { input, utc: date, offset, pos, houses, asc, mc, houseSystem: usedSystem, houseNote, unknownTime, aspects: findAspects(pos, pos, false) };
+}
+
+function houseOf(lon, cusps) {
+  for (let i = 0; i < 12; i++) {
+    const a = cusps[i], b = cusps[(i + 1) % 12];
+    const span = norm(b - a), off = norm(lon - a);
+    if (off < span) return i + 1;
+  }
+  return 1;
+}
+
+function orbFor(asp, b1, b2, cross) {
+  let o = asp.orb + Math.max(BODY[b1].orbBonus || 0, BODY[b2].orbBonus || 0) * (asp.nature === 'menor' ? 0 : 1);
+  if (BODY[b1].minor || BODY[b2].minor || BODY[b1].angle || BODY[b2].angle) o = Math.min(o, asp.nature === 'menor' ? 1.5 : 4);
+  if (cross) o *= 0.8;
+  return o;
+}
+
+function findAspects(posA, posB, cross) {
+  const out = [];
+  const keysA = Object.keys(posA), keysB = Object.keys(posB);
+  for (let i = 0; i < keysA.length; i++) {
+    for (let j = cross ? 0 : i + 1; j < keysB.length; j++) {
+      const a = keysA[i], b = keysB[j];
+      if (!cross && ((a === 'asc' && b === 'mc') || (a === 'mc' && b === 'asc'))) continue;
+      if ((a === 'node' && b === 'lilith') || (a === 'lilith' && b === 'node')) continue;
+      const sep = angDist(posA[a].lon, posB[b].lon);
+      for (const asp of ASPECTS) {
+        const orb = Math.abs(sep - asp.angle), max = orbFor(asp, a, b, cross);
+        if (orb <= max) {
+          let applying = null;
+          if (!cross) {
+            const dt = 0.01;
+            const sep2 = angDist(posA[a].lon + posA[a].speed * dt, posB[b].lon + posB[b].speed * dt);
+            applying = Math.abs(sep2 - asp.angle) < orb;
+          }
+          out.push({ a, b, type: asp.key, orb, exact: orb < 1, applying, strength: 1 - orb / max });
+          break;
+        }
+      }
+    }
+  }
+  return out.sort((x, y) => x.orb - y.orb);
+}
+
+function balance(chart) {
+  const el = { fuego: 0, tierra: 0, aire: 0, agua: 0 }, mod = { cardinal: 0, fijo: 0, mutable: 0 };
+  const list = { fuego: [], tierra: [], aire: [], agua: [], cardinal: [], fijo: [], mutable: [] };
+  for (const b of BODIES) {
+    const p = chart.pos[b.key];
+    if (!p || !b.w) continue;
+    const s = signOf(p.lon);
+    el[s.el] += b.w; mod[s.mod] += b.w;
+    list[s.el].push(b.key); list[s.mod].push(b.key);
+  }
+  const hemi = { norte: 0, sur: 0, este: 0, oeste: 0 }, quad = [0, 0, 0, 0];
+  if (chart.houses) {
+    for (const b of BODIES) {
+      const p = chart.pos[b.key];
+      if (!p || b.angle || b.minor) continue;
+      const hh = p.house;
+      if (hh >= 1 && hh <= 6) hemi.norte++; else hemi.sur++;
+      if (hh >= 10 || hh <= 3) hemi.este++; else hemi.oeste++;
+      quad[Math.floor(((hh - 1) % 12) / 3)]++;
+    }
+  }
+  return { el, mod, list, hemi, quad };
+}
+
+function midpoint(a, b) {
+  const d = norm(b - a);
+  return d <= 180 ? norm(a + d / 2) : norm(b + (360 - d) / 2);
+}
+/* ── Utilidades de interfaz ───────────────────────────────────────── */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const VS = '︎';
+const gl = (key) => {
+  const b = BODY[key];
+  if (b.angle) return `<span class="mono" style="font-size:.78em;font-weight:600">${b.glyph}</span>`;
+  return `<span class="gl">${b.glyph}${VS}</span>`;
+};
+const sgl = (sign) => `<span class="gl el-${sign.el}">${sign.glyph}${VS}</span>`;
+const signTag = (lon) => { const s = signOf(lon); return `<span class="sg">${sgl(s)} <span class="mono">${fmtDeg(lon, false)}</span> ${s.name}</span>`; };
+const pname = (key) => `<span class="pname">${gl(key)}${BODY[key].name}</span>`;
+const ASP = Object.fromEntries(ASPECTS.map((a) => [a.key, a]));
+const natCls = (n) => ({ 'armónico': 'harm', 'tenso': 'tense', 'menor': 'minor', 'mixto': 'mixto' }[n]);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('astrolabio.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('astrolabio.' + k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } },
+};
+const normTxt = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+function fmtOffset(min) {
+  const s = min < 0 ? '−' : '+', a = Math.abs(min), h = Math.floor(a / 60), m = a % 60;
+  return `UTC${s}${h}${m ? ':' + String(m).padStart(2, '0') : ''}`;
+}
+function fmtCoord(lat, lon) {
+  const f = (v, p, n) => { const a = Math.abs(v), d = Math.floor(a), m = Math.round((a - d) * 60); return `${d}°${String(m).padStart(2, '0')}′${v >= 0 ? p : n}`; };
+  return `${f(lat, 'N', 'S')} ${f(lon, 'E', 'O')}`;
+}
+const fmtDate = (y, mo, d) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(y, mo - 1, d)));
+const withArticle = (key) => ({ sun: 'el Sol', moon: 'la Luna', node: 'el Nodo Norte', asc: 'el Ascendente', mc: 'el Medio Cielo' }[key] || BODY[key].name);
+
+function dignityOf(key, signKey) {
+  const d = DIGNITY[key];
+  if (!d) return null;
+  const opp = (k) => SIGNS[(SIGNS.findIndex((s) => s.key === k) + 6) % 12].key;
+  if (d.dom.includes(signKey)) return { cls: 'dom', name: 'Domicilio' };
+  if (d.exa.includes(signKey)) return { cls: 'exa', name: 'Exaltación' };
+  if (d.dom.map(opp).includes(signKey)) return { cls: 'exi', name: 'Exilio' };
+  if (d.exa.map(opp).includes(signKey)) return { cls: 'cai', name: 'Caída' };
+  return null;
+}
+
+/* ── Pestañas ─────────────────────────────────────────────────────── */
+const tabState = store.get('tabs', {});
+function activate(group, tab, focus) {
+  const list = $(`[role="tablist"][data-group="${group}"]`);
+  $$('[role="tab"]', list).forEach((b) => {
+    const on = b.dataset.tab === tab;
+    b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1;
+    if (on && focus) b.focus();
+    if (on) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
+  $$(`[role="tabpanel"][data-group="${group}"]`).forEach((p) => { p.hidden = p.dataset.panel !== tab; });
+  tabState[group] = tab; store.set('tabs', tabState);
+  if (group === 'main') { try { history.replaceState(null, '', '#' + tab); } catch (e) { /* sin historial */ } }
+}
+function setupTabs(group, fallback) {
+  const list = $(`[role="tablist"][data-group="${group}"]`);
+  const tabs = $$('[role="tab"]', list);
+  list.addEventListener('click', (e) => { const b = e.target.closest('[role="tab"]'); if (b) activate(group, b.dataset.tab); });
+  list.addEventListener('keydown', (e) => {
+    const i = tabs.findIndex((b) => b.getAttribute('aria-selected') === 'true');
+    let j = null;
+    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+    if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+    if (e.key === 'Home') j = 0;
+    if (e.key === 'End') j = tabs.length - 1;
+    if (j !== null) { e.preventDefault(); activate(group, tabs[j].dataset.tab, true); }
+  });
+  const valid = tabs.map((b) => b.dataset.tab);
+  activate(group, valid.includes(tabState[group]) ? tabState[group] : fallback);
+}
+
+/* ── Formularios de persona ───────────────────────────────────────── */
+const EXAMPLES = [
+  { id: 'ex-lucia', example: true, name: 'Lucía', date: '1992-03-14', time: '09:20', unknown: false, city: 'Madrid|España' },
+  { id: 'ex-mateo', example: true, name: 'Mateo', date: '1990-11-02', time: '18:45', unknown: false, city: 'Ciudad de México|México' },
+  { id: 'ex-valentina', example: true, name: 'Valentina', date: '1995-07-23', time: '06:10', unknown: false, city: 'Buenos Aires|Argentina' },
+];
+const findCity = (id) => CITIES.find((c) => `${c.name}|${c.country}` === id) || null;
+let TZS = [];
+try { TZS = Intl.supportedValuesOf('timeZone'); } catch (e) { /* navegador antiguo */ }
+if (!TZS.length) TZS = [...new Set(CITIES.map((c) => c.tz))].sort();
+const BROWSER_TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return 'UTC'; } })();
+const placeSel = {};
+const isExample = {};
+const PERSON_LABEL = { n: null, a: { t: 'Persona A', c: 'var(--ring-a)' }, b: { t: 'Persona B', c: 'var(--ring-b)' } };
+
+function personHTML(p) {
+  const L = PERSON_LABEL[p];
+  return `
+  <div class="person-head">
+    ${L ? `<span class="tag"><span class="dot" style="background:${L.c}"></span>${L.t}</span>` : '<span></span>'}
+    <div class="actions">
+      ${p !== 'n' ? `<button class="btn small" type="button" data-copy="${p}">Usar carta natal</button>` : ''}
+      <select id="${p}-load" aria-label="Cargar persona guardada" style="width:auto;padding:5px 8px;font-size:.84rem"></select>
+    </div>
+  </div>
+  <div class="field"><label for="${p}-name">Nombre</label><input type="text" id="${p}-name" autocomplete="off" placeholder="Nombre o apodo"></div>
+  <div class="row2">
+    <div class="field"><label for="${p}-date">Fecha</label><input type="date" id="${p}-date" min="1800-01-01" max="2199-12-31"></div>
+    <div class="field"><label for="${p}-time">Hora local</label><input type="time" id="${p}-time"></div>
+  </div>
+  <label class="check"><input type="checkbox" id="${p}-unknown"> No sé la hora exacta</label>
+  <div class="field place">
+    <label for="${p}-place">Lugar de nacimiento</label>
+    <input type="text" id="${p}-place" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="${p}-sugg" aria-autocomplete="list" placeholder="Busca una ciudad">
+    <ul class="suggest" id="${p}-sugg" role="listbox" hidden></ul>
+  </div>
+  <details class="manual" id="${p}-manual">
+    <summary>¿Tu ciudad no aparece? Introduce coordenadas</summary>
+    <div class="row3">
+      <div class="field"><label for="${p}-lat">Latitud</label><input type="number" id="${p}-lat" step="0.0001" min="-90" max="90" placeholder="40.42"></div>
+      <div class="field"><label for="${p}-lon">Longitud</label><input type="number" id="${p}-lon" step="0.0001" min="-180" max="180" placeholder="-3.70"></div>
+      <div class="field"><label for="${p}-tz">Zona horaria</label><select id="${p}-tz">${TZS.map((t) => `<option>${esc(t)}</option>`).join('')}</select></div>
+    </div>
+    <p class="note" style="margin-top:6px">Latitud norte y longitud este en positivo; sur y oeste en negativo.</p>
+  </details>`;
+}
+
+function refreshLoadSelects() {
+  const saved = store.get('personas', []);
+  for (const p of ['n', 'a', 'b']) {
+    const sel = $(`#${p}-load`);
+    if (!sel) continue;
+    sel.innerHTML = `<option value="">Cargar…</option>` +
+      (saved.length ? `<optgroup label="Guardadas">${saved.map((s, i) => `<option value="s${i}">${esc(s.name)}</option>`).join('')}</optgroup>` : '') +
+      `<optgroup label="Ejemplos">${EXAMPLES.map((e, i) => `<option value="e${i}">${esc(e.name)} (ejemplo)</option>`).join('')}</optgroup>`;
+  }
+}
+
+function citySearch(q) {
+  const n = normTxt(q);
+  if (!n) return [];
+  const scored = [];
+  for (const c of CITIES) {
+    const name = normTxt(c.name), full = normTxt(`${c.name} ${c.country}`);
+    let s = -1;
+    if (name.startsWith(n)) s = 0; else if (name.includes(n)) s = 1; else if (full.includes(n)) s = 2;
+    if (s >= 0) scored.push([s, c]);
+  }
+  return scored.sort((a, b) => a[0] - b[0]).slice(0, 8).map((x) => x[1]);
+}
+
+function setupPerson(p) {
+  const host = $(`[data-person="${p}"]`);
+  host.innerHTML = personHTML(p);
+  if (p === 'n') host.classList.add('person');
+  const input = $(`#${p}-place`), list = $(`#${p}-sugg`);
+  let items = [], idx = -1;
+  const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); idx = -1; };
+  const choose = (c) => {
+    placeSel[p] = c; input.value = `${c.name}, ${c.country}`;
+    $(`#${p}-tz`).value = c.tz; $(`#${p}-lat`).value = ''; $(`#${p}-lon`).value = '';
+    close();
+  };
+  const draw = () => {
+    list.innerHTML = items.map((c, i) => `<li role="option" id="${p}-opt-${i}" aria-selected="${i === idx}" data-i="${i}"><span>${esc(c.name)}</span><small>${esc(c.country)}</small></li>`).join('') ||
+      '<li aria-disabled="true"><small>Sin resultados. Usa las coordenadas manuales.</small></li>';
+    list.hidden = false; input.setAttribute('aria-expanded', 'true');
+    if (idx >= 0) input.setAttribute('aria-activedescendant', `${p}-opt-${idx}`); else input.removeAttribute('aria-activedescendant');
+  };
+  input.addEventListener('input', () => { placeSel[p] = null; items = citySearch(input.value); idx = items.length ? 0 : -1; input.value.trim() ? draw() : close(); });
+  input.addEventListener('keydown', (e) => {
+    if (list.hidden) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(items.length - 1, idx + 1); draw(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(0, idx - 1); draw(); }
+    else if (e.key === 'Enter' && idx >= 0) { e.preventDefault(); choose(items[idx]); }
+    else if (e.key === 'Escape') close();
+  });
+  input.addEventListener('blur', () => setTimeout(close, 150));
+  list.addEventListener('mousedown', (e) => e.preventDefault());
+  list.addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (li) choose(items[+li.dataset.i]); });
+  $(`#${p}-unknown`).addEventListener('change', (e) => { $(`#${p}-time`).disabled = e.target.checked; });
+  $(`#${p}-load`).addEventListener('change', (e) => {
+    const v = e.target.value; e.target.value = '';
+    if (!v) return;
+    const src = v[0] === 'e' ? EXAMPLES[+v.slice(1)] : store.get('personas', [])[+v.slice(1)];
+    if (src) fillPerson(p, src);
+  });
+  host.addEventListener('input', (e) => { if (e.target.id !== `${p}-load`) isExample[p] = false; });
+  $(`#${p}-tz`).value = BROWSER_TZ;
+}
+
+function rawPerson(p) {
+  return {
+    name: $(`#${p}-name`).value.trim(), date: $(`#${p}-date`).value, time: $(`#${p}-time`).value, unknown: $(`#${p}-unknown`).checked,
+    city: placeSel[p] ? `${placeSel[p].name}|${placeSel[p].country}` : null, placeText: $(`#${p}-place`).value,
+    lat: $(`#${p}-lat`).value, lon: $(`#${p}-lon`).value, tz: $(`#${p}-tz`).value, example: !!isExample[p],
+  };
+}
+function fillPerson(p, r) {
+  $(`#${p}-name`).value = r.name || '';
+  $(`#${p}-date`).value = r.date || '';
+  $(`#${p}-time`).value = r.time || '';
+  $(`#${p}-unknown`).checked = !!r.unknown; $(`#${p}-time`).disabled = !!r.unknown;
+  const c = r.city ? findCity(r.city) : null;
+  placeSel[p] = c;
+  $(`#${p}-place`).value = c ? `${c.name}, ${c.country}` : (r.placeText || '');
+  $(`#${p}-lat`).value = r.lat || ''; $(`#${p}-lon`).value = r.lon || '';
+  $(`#${p}-tz`).value = r.tz || (c ? c.tz : BROWSER_TZ);
+  $(`#${p}-manual`).open = !!(r.lat && r.lon);
+  isExample[p] = !!r.example;
+}
+
+function readPerson(p) {
+  const r = rawPerson(p);
+  const who = PERSON_LABEL[p] ? PERSON_LABEL[p].t + ': ' : '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(r.date);
+  if (!m) return { error: `${who}falta la fecha de nacimiento.` };
+  const y = +m[1], mo = +m[2], d = +m[3];
+  if (y < 1800 || y > 2199) return { error: `${who}la fecha debe estar entre 1800 y 2199.` };
+  let h = 12, mi = 0;
+  if (!r.unknown) {
+    const t = /^(\d{2}):(\d{2})/.exec(r.time);
+    if (!t) return { error: `${who}falta la hora. Si no la sabes, marca «No sé la hora exacta».` };
+    h = +t[1]; mi = +t[2];
+  }
+  let lat, lon, zone, placeLabel;
+  if (r.lat !== '' && r.lon !== '') {
+    lat = +r.lat; lon = +r.lon; zone = r.tz;
+    if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180)) return { error: `${who}las coordenadas no son válidas.` };
+    placeLabel = r.placeText && !placeSel[p] ? r.placeText : 'Coordenadas manuales';
+  } else {
+    let c = placeSel[p];
+    if (!c && r.placeText.trim()) { const found = citySearch(r.placeText.split(',')[0]); if (found.length) c = found[0]; }
+    if (!c) return { error: `${who}elige un lugar de la lista o introduce coordenadas.` };
+    placeSel[p] = c; lat = c.lat; lon = c.lon; zone = c.tz; placeLabel = `${c.name}, ${c.country}`;
+  }
+  return { data: { name: r.name || 'Sin nombre', y, mo, d, h, mi, unknownTime: r.unknown, lat, lon, zone, placeLabel, example: r.example }, raw: r };
+}
+
+/* ── Rueda ────────────────────────────────────────────────────────── */
+function spread(items, minSep) {
+  const arr = items.map((x) => ({ ...x, d: x.lon })).sort((a, b) => a.lon - b.lon);
+  const n = arr.length;
+  if (n < 2) return arr;
+  for (let it = 0; it < 80; it++) {
+    let moved = false;
+    arr.sort((a, b) => a.d - b.d);
+    for (let i = 0; i < n; i++) {
+      const A = arr[i], B = arr[(i + 1) % n];
+      const gap = norm(B.d - A.d);
+      if (gap < minSep) { const push = (minSep - gap) / 2 + 0.05; A.d = norm(A.d - push); B.d = norm(B.d + push); moved = true; }
+    }
+    if (!moved) break;
+  }
+  return arr;
+}
+
+function wheelSVG({ ref, houses, rings, aspects, bi }) {
+  const C = 300, Z1 = 290, Z0 = 250;
+  const aspR = 142, numR = bi ? 152 : 157;
+  const ang = (lon) => (180 + lon - ref) * D2R;
+  const P = (lon, r) => [(C + r * Math.cos(ang(lon))).toFixed(2), (C - r * Math.sin(ang(lon))).toFixed(2)];
+  const L = (l1, r1, l2, r2, cls, extra = '') => { const [x1, y1] = P(l1, r1), [x2, y2] = P(l2, r2); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${cls}" ${extra}/>`; };
+  const T = (lon, r, txt, cls, title) => { const [x, y] = P(lon, r); return `<text x="${x}" y="${y}" class="${cls}" text-anchor="middle" dominant-baseline="central">${title ? `<title>${esc(title)}</title>` : ''}${txt}</text>`; };
+  let s = `<svg class="wheel" viewBox="-34 -34 668 668" role="img" aria-label="Rueda zodiacal">`;
+  s += `<circle cx="${C}" cy="${C}" r="${Z1}" class="disc"/>`;
+  for (let i = 0; i < 12; i++) {
+    const a1 = i * 30, a2 = a1 + 30, el = { fuego: 'fire', tierra: 'earth', aire: 'air', agua: 'water' }[SIGNS[i].el];
+    const [ox1, oy1] = P(a1, Z1), [ox2, oy2] = P(a2, Z1), [ix2, iy2] = P(a2, Z0), [ix1, iy1] = P(a1, Z0);
+    s += `<path class="${el} zs" d="M${ox1} ${oy1} A${Z1} ${Z1} 0 0 0 ${ox2} ${oy2} L${ix2} ${iy2} A${Z0} ${Z0} 0 0 1 ${ix1} ${iy1} Z"/>`;
+    s += T(a1 + 15, 270, SIGNS[i].glyph + VS, `zg t${el}`, SIGNS[i].name);
+  }
+  for (let d = 0; d < 360; d++) s += L(d, Z0, d, Z0 - (d % 10 === 0 ? 7 : d % 5 === 0 ? 5 : 2.5), 'tick');
+  s += `<circle cx="${C}" cy="${C}" r="${Z0}" class="ring strong"/>`;
+  if (bi) s += `<circle cx="${C}" cy="${C}" r="206" class="ring"/><circle cx="${C}" cy="${C}" r="162" class="ring"/>`;
+  else s += `<circle cx="${C}" cy="${C}" r="172" class="ring"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="${aspR}" class="ring strong"/>`;
+  if (houses) {
+    houses.forEach((c, i) => {
+      const angular = i % 3 === 0;
+      s += L(c, aspR, c, angular ? Z1 + 6 : Z0, angular ? 'cusp ang' : 'cusp');
+      const mid = c + norm(houses[(i + 1) % 12] - c) / 2;
+      s += T(mid, numR, i + 1, 'hn');
+    });
+    [['AC', 0], ['IC', 3], ['DC', 6], ['MC', 9]].forEach(([t, i]) => { s += T(houses[i], Z1 + 20, t, 'angl'); });
+  }
+  for (const a of aspects || []) {
+    if (a.type === 'conj') continue;
+    const cls = natCls(ASP[a.type].nature);
+    const [x1, y1] = P(a.l1, aspR), [x2, y2] = P(a.l2, aspR);
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="asp ${cls}" opacity="${(0.3 + 0.7 * a.strength).toFixed(2)}"/>`;
+  }
+  for (const ring of rings) {
+    const sp = spread(ring.items, ring.minSep || 7.5);
+    for (const it of sp) {
+      const b = BODY[it.key], label = b.angle ? b.glyph : b.glyph + VS;
+      s += L(it.lon, Z0, it.lon, Z0 - 9, `s${ring.cls}`, 'stroke-width="1.6"');
+      s += L(it.lon, Z0 - 9, it.d, ring.r + 13, `lead s${ring.cls}`);
+      s += T(it.d, ring.r, label, (b.angle ? 'angl ' : 'pg ') + 'r' + ring.cls, `${b.name} ${fmtDeg(it.lon)}${it.retro ? ' (retrógrado)' : ''}`);
+      if (ring.degR) s += T(it.d, ring.degR, `${Math.floor(norm(it.lon) % 30)}°${it.retro ? '℞' : ''}`, `pd r${ring.cls}`);
+    }
+  }
+  return s + '</svg>';
+}
+const ringItems = (pos, skipAngles) => Object.keys(pos).filter((k) => !(skipAngles && BODY[k].angle)).map((k) => ({ key: k, lon: pos[k].lon, retro: pos[k].retro }));
+const legend = (extra = '') => `<div class="legend">${extra}<span><i style="border-color:var(--harm)"></i>Armónico</span><span><i style="border-color:var(--tense)"></i>Tenso</span><span><i style="border-color:var(--minor);border-top-style:dashed"></i>Menor</span></div>`;
+
+/* ── Piezas compartidas ───────────────────────────────────────────── */
+function chipsHTML(id) {
+  const f = [['all', 'Todos'], ['harm', 'Armónicos'], ['tense', 'Tensos'], ['mixto', 'Conjunciones'], ['minor', 'Menores']];
+  return `<div class="chips" id="${id}" role="group" aria-label="Filtrar aspectos">${f.map(([k, t], i) => `<button type="button" class="chip" data-f="${k}" aria-pressed="${i === 0}">${t}</button>`).join('')}</div>`;
+}
+function bindChips(id, onChange) {
+  const box = $('#' + id);
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    $$('.chip', box).forEach((c) => c.setAttribute('aria-pressed', c === b));
+    onChange(b.dataset.f);
+  });
+}
+const aspFilter = (list, f) => (f === 'all' ? list : list.filter((a) => natCls(ASP[a.type].nature) === f));
+const aspBadge = (a) => { const A = ASP[a.type]; return `<span class="badge ${natCls(A.nature)}"><span class="gl">${A.glyph}${VS}</span> ${A.name}</span>`; };
+const orbTxt = (o) => { const d = Math.floor(o), m = Math.round((o - d) * 60); return `${d}°${String(m === 60 ? 59 : m).padStart(2, '0')}′`; };
+
+function aspectGrid(rows, cols, lookup, triangular) {
+  const head = (k) => `<th class="${BODY[k].angle ? 'ang' : ''}" scope="col" title="${BODY[k].name}">${BODY[k].angle ? BODY[k].glyph : BODY[k].glyph + VS}</th>`;
+  let h = '<div class="grid-wrap"><table class="agrid"><thead><tr><th></th>' + (triangular ? cols.slice(0, -1) : cols).map(head).join('') + '</tr></thead><tbody>';
+  rows.forEach((r, i) => {
+    if (triangular && i === 0) return;
+    h += `<tr>${head(r).replace('<th', '<th scope="row"').replace('scope="col"', '')}`;
+    const cs = triangular ? cols.slice(0, -1) : cols;
+    cs.forEach((c, j) => {
+      if (triangular && j >= i) { h += '<td class="empty"></td>'; return; }
+      const a = lookup(r, c);
+      if (!a) { h += '<td></td>'; return; }
+      const A = ASP[a.type];
+      h += `<td title="${esc(`${BODY[r].name} ${A.name} ${BODY[c].name}, orbe ${orbTxt(a.orb)}`)}"><span class="cell c-${natCls(A.nature)}"><span class="gl">${A.glyph}${VS}</span><small>${Math.round(a.orb)}°</small></span></td>`;
+    });
+    h += '</tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+
+function elementBars(bal) {
+  const tot = Object.values(bal.el).reduce((a, b) => a + b, 0) || 1;
+  const mt = Object.values(bal.mod).reduce((a, b) => a + b, 0) || 1;
+  const bar = (label, v, t, cls, keys) => `<div class="bar"><span>${label}</span><div><div class="track"><div class="fill ${cls}" style="width:${(100 * v / t).toFixed(1)}%"></div></div><div class="who">${keys.map((k) => `${gl(k)}`).join(' ')}</div></div><span class="val">${Math.round(100 * v / t)}%</span></div>`;
+  return {
+    el: ['fuego', 'tierra', 'aire', 'agua'].map((e) => bar(cap(e), bal.el[e], tot, e, bal.list[e])).join(''),
+    mod: ['cardinal', 'fijo', 'mutable'].map((m) => bar(cap(m), bal.mod[m], mt, '', bal.list[m])).join(''),
+    tot, mt,
+  };
+}
+const dominant = (o) => Object.entries(o).sort((a, b) => b[1] - a[1])[0][0];
+
+/* ── Carta natal ──────────────────────────────────────────────────── */
+let natal = null;
+function summaryHTML(ch, data, extra = '') {
+  const pill = (key, label) => {
+    const p = ch.pos[key];
+    if (!p) return `<div class="pillar"><div class="eyebrow">${label}</div><b class="muted">Sin hora</b></div>`;
+    const s = signOf(p.lon);
+    return `<div class="pillar"><div class="eyebrow">${label}</div><b>${sgl(s)} ${s.name} <span class="mono muted" style="font-weight:400;font-size:.8rem">${fmtDeg(p.lon, false)}</span></b></div>`;
+  };
+  const hs = { placidus: 'Placidus', equal: 'Casas iguales', whole: 'Signo entero' }[ch.houseSystem];
+  return `
+    <div class="section-title"><h2>${esc(data.name)} ${data.example ? '<span class="sample">Ejemplo</span>' : ''}</h2>${extra}</div>
+    <div class="meta">
+      <span>${fmtDate(data.y, data.mo, data.d)}${data.unknownTime ? ' · hora desconocida' : ` · ${String(data.h).padStart(2, '0')}:${String(data.mi).padStart(2, '0')} (${fmtOffset(ch.offset)})`}</span>
+      <span>${esc(data.placeLabel)} · <span class="mono">${fmtCoord(data.lat, data.lon)}</span></span>
+      ${ch.houses ? `<span>Casas: ${hs}</span>` : ''}
+    </div>
+    <div class="pillars">${pill('sun', 'Sol')}${pill('moon', 'Luna')}${pill('asc', 'Ascendente')}</div>`;
+}
+
+function renderNatal() {
+  const { chart: ch, data } = natal;
+  $('#natal-summary').innerHTML = summaryHTML(ch, data);
+  const notes = [];
+  if (ch.unknownTime) notes.push('Sin hora de nacimiento no se calculan Ascendente ni casas, y la Luna puede variar hasta ±6° respecto a lo mostrado (calculado a mediodía).');
+  if (ch.houseNote) notes.push(ch.houseNote);
+  const noteHTML = notes.map((n) => `<p class="note">${n}</p>`).join('');
+
+  // Rueda
+  const major = ch.aspects.filter((a) => !BODY[a.a].minor && !BODY[a.b].minor);
+  $('#n-rueda').innerHTML = `<div class="wheel-box">${wheelSVG({
+    ref: ch.asc ?? 0, houses: ch.houses,
+    rings: [{ items: ringItems(ch.pos, true), r: 222, degR: 194, cls: 'a', minSep: 7.5 }],
+    aspects: major.map((a) => ({ l1: ch.pos[a.a].lon, l2: ch.pos[a.b].lon, type: a.type, strength: a.strength })),
+  })}${legend()}${noteHTML}</div>`;
+
+  // Planetas
+  const rows = BODIES.filter((b) => ch.pos[b.key]).map((b) => {
+    const p = ch.pos[b.key], s = signOf(p.lon), dg = dignityOf(b.key, s.key);
+    const mov = b.angle ? '<span class="muted">—</span>' : (p.retro ? '<span class="badge retro">℞ Retrógrado</span>' : '<span class="badge">Directo</span>');
+    return `<tr><td>${pname(b.key)}</td><td>${signTag(p.lon)}</td><td class="mono">${p.house ?? '—'}</td><td>${mov}</td>
+      <td class="mono muted">${b.angle ? '' : `${p.speed >= 0 ? '+' : '−'}${Math.abs(p.speed).toFixed(p.speed > 2 || p.speed < -2 ? 1 : 3)}°/día`}</td>
+      <td>${dg ? `<span class="badge ${dg.cls}">${dg.name}</span>` : ''}</td></tr>`;
+  }).join('');
+  $('#n-planetas').innerHTML = `<p class="panel-intro">Posición de cada astro en el zodiaco, la casa que ocupa y su movimiento aparente visto desde la Tierra. La dignidad indica si el planeta está en un signo afín (domicilio, exaltación) o incómodo (exilio, caída).</p>
+    <div class="tbl-wrap"><table><thead><tr><th>Astro</th><th>Posición</th><th>Casa</th><th>Movimiento</th><th>Velocidad</th><th>Dignidad</th></tr></thead><tbody>${rows}</tbody></table></div>${noteHTML}`;
+
+  // Casas
+  if (!ch.houses) {
+    $('#n-casas').innerHTML = `<div class="empty-state">Las casas dependen de la hora exacta de nacimiento. Añade la hora para verlas.</div>`;
+  } else {
+    const cards = ch.houses.map((c, i) => {
+      const s = signOf(c), ruler = s.ruler, rp = ch.pos[ruler];
+      const inside = BODIES.filter((b) => !b.angle && ch.pos[b.key] && ch.pos[b.key].house === i + 1);
+      return `<article class="item"><h3><span class="mono muted" style="font-size:.9rem">${i + 1}</span> ${HOUSE_NAME[i]}</h3>
+        <dl class="kv"><dt>Cúspide</dt><dd>${signTag(c)}</dd>
+        <dt>Regente</dt><dd>${pname(ruler)} <span class="muted">en Casa ${rp.house}</span></dd>
+        <dt>Planetas</dt><dd>${inside.length ? inside.map((b) => pname(b.key)).join(' ') : '<span class="muted">Ninguno</span>'}</dd></dl>
+        <p class="note">${cap(HOUSE_THEME[i])}.</p></article>`;
+    }).join('');
+    $('#n-casas').innerHTML = `<p class="panel-intro">Cada casa es un área de la vida. El signo en la cúspide marca el tono; su planeta regente y los planetas que la ocupan dicen dónde se pone la energía.</p><div class="cols">${cards}</div>${noteHTML}`;
+  }
+
+  // Aspectos
+  const keys = BODIES.filter((b) => ch.pos[b.key]).map((b) => b.key);
+  const map = {}; ch.aspects.forEach((a) => { map[a.a + '|' + a.b] = a; map[a.b + '|' + a.a] = a; });
+  $('#n-aspectos').innerHTML = `<p class="panel-intro">Los aspectos son ángulos entre astros. Los armónicos (trígono, sextil) facilitan; los tensos (cuadratura, oposición) generan conflicto y motivación. El orbe indica la distancia al ángulo exacto: cuanto menor, más se nota.</p>
+    ${aspectGrid(keys, keys, (r, c) => map[r + '|' + c], true)}
+    <div class="section-title"><h3>Lista de aspectos</h3>${chipsHTML('n-chips')}</div><div id="n-asp-list"></div>`;
+  const drawList = (f) => {
+    const list = aspFilter(ch.aspects, f);
+    $('#n-asp-list').innerHTML = list.length ? `<div class="tbl-wrap"><table><thead><tr><th>Astros</th><th>Aspecto</th><th>Orbe</th><th>Fase</th></tr></thead><tbody>${list.map((a) => `
+      <tr><td>${pname(a.a)} <span class="muted">·</span> ${pname(a.b)}</td><td>${aspBadge(a)}</td><td class="mono">${orbTxt(a.orb)}</td>
+      <td class="muted">${a.applying === null || BODY[a.a].angle && BODY[a.b].angle ? '—' : a.applying ? 'Aplicativo' : 'Separativo'}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No hay aspectos de este tipo.</div>';
+  };
+  drawList('all'); bindChips('n-chips', drawList);
+
+  // Equilibrio
+  const bal = balance(ch), eb = elementBars(bal);
+  const dEl = dominant(bal.el), dMod = dominant(bal.mod);
+  const lacking = Object.entries(bal.el).filter(([, v]) => v / eb.tot < 0.1).map(([k]) => k);
+  const yang = bal.el.fuego + bal.el.aire, yin = bal.el.tierra + bal.el.agua;
+  const hemi = ch.houses ? `<article class="item"><h3>Hemisferios</h3>
+      <div class="bars">
+        <div class="bar"><span>Oriental</span><div class="track"><div class="fill" style="width:${(100 * bal.hemi.este / 10)}%"></div></div><span class="val">${bal.hemi.este}</span></div>
+        <div class="bar"><span>Occidental</span><div class="track"><div class="fill" style="width:${(100 * bal.hemi.oeste / 10)}%"></div></div><span class="val">${bal.hemi.oeste}</span></div>
+        <div class="bar"><span>Nocturno</span><div class="track"><div class="fill" style="width:${(100 * bal.hemi.norte / 10)}%"></div></div><span class="val">${bal.hemi.norte}</span></div>
+        <div class="bar"><span>Diurno</span><div class="track"><div class="fill" style="width:${(100 * bal.hemi.sur / 10)}%"></div></div><span class="val">${bal.hemi.sur}</span></div>
+      </div>
+      <p class="note">${bal.hemi.este >= bal.hemi.oeste ? 'Predomina el hemisferio oriental: tiendes a decidir por ti y a iniciar.' : 'Predomina el hemisferio occidental: te defines mucho a través de los demás.'}
+      ${bal.hemi.sur > bal.hemi.norte ? ' Mayoría por encima del horizonte: vida orientada hacia fuera y lo público.' : ' Mayoría bajo el horizonte: vida orientada hacia lo íntimo y personal.'}</p>
+    </article>` : '';
+  $('#n-equilibrio').innerHTML = `<p class="panel-intro">Reparto de los astros por elemento y modalidad. Sol, Luna y Ascendente cuentan doble; los planetas lentos, la mitad.</p>
+    <div class="cols">
+      <article class="item"><h3>Elementos</h3><div class="bars">${eb.el}</div><p class="note">${ELEMENT_TEXT[dEl]} ${lacking.map((l) => ELEMENT_LACK[l]).join(' ')}</p></article>
+      <article class="item"><h3>Modalidades</h3><div class="bars">${eb.mod}</div><p class="note">${MODE_TEXT[dMod]}</p></article>
+      <article class="item"><h3>Polaridad</h3><div class="bars">
+        <div class="bar"><span>Activa</span><div class="track"><div class="fill fuego" style="width:${(100 * yang / eb.tot).toFixed(1)}%"></div></div><span class="val">${Math.round(100 * yang / eb.tot)}%</span></div>
+        <div class="bar"><span>Receptiva</span><div class="track"><div class="fill agua" style="width:${(100 * yin / eb.tot).toFixed(1)}%"></div></div><span class="val">${Math.round(100 * yin / eb.tot)}%</span></div></div>
+        <p class="note">${yang >= yin ? 'Energía más extrovertida: fuego y aire, acción e intercambio.' : 'Energía más introvertida: tierra y agua, contención y profundidad.'}</p></article>
+      ${hemi}
+    </div>`;
+
+  // Lectura
+  const pillars = ['sun', 'moon', 'asc'].filter((k) => ch.pos[k]).map((k) => {
+    const s = signOf(ch.pos[k].lon), t = SIGN_TEXT[s.key];
+    return `<article class="item"><span class="eyebrow">${BODY[k].name}</span><h3>${sgl(s)} ${s.name}</h3>
+      <p>${PILLAR_INTRO[k](s.name)}</p>
+      <dl class="kv"><dt>Claves</dt><dd>${t.kw}</dd><dt>Fortaleza</dt><dd>${t.strong}</dd><dt>Reto</dt><dd>${t.challenge}</dd></dl></article>`;
+  }).join('');
+  const planets = BODIES.filter((b) => !b.angle && ch.pos[b.key] && !['sun', 'moon'].includes(b.key)).map((b) => {
+    const p = ch.pos[b.key], s = signOf(p.lon);
+    return `<article class="item"><h3>${gl(b.key)} ${b.name} en ${s.name}${p.house ? ` <span class="muted" style="font-size:.9rem">· Casa ${p.house}</span>` : ''}${p.retro && !b.minor ? ' <span class="badge retro">℞</span>' : ''}</h3>
+      <p>${cap(PLANET_MEANING[b.key])} se expresa ${SIGN_TEXT[s.key].style}${p.house ? `, sobre todo en ${HOUSE_THEME[p.house - 1]}` : ''}.${p.retro && !b.minor ? ' Al estar retrógrado, esta energía se vive de forma más interna y reflexiva.' : ''}</p></article>`;
+  }).join('');
+  const topAsp = ch.aspects.filter((a) => ASP[a.type].nature !== 'menor' && !BODY[a.a].minor && !BODY[a.b].minor).slice(0, 8).map((a) => `
+    <article class="item"><h3>${gl(a.a)} ${BODY[a.a].name} ${aspBadge(a)} ${gl(a.b)} ${BODY[a.b].name}</h3>
+    <p>${cap(PLANET_MEANING[a.a])} y ${PLANET_MEANING[a.b]} ${ASPECT_VERB[a.type]}. <span class="muted mono">Orbe ${orbTxt(a.orb)}</span></p></article>`).join('');
+  $('#n-lectura').innerHTML = `<div class="reading"><h3>Los tres pilares</h3><div class="cols">${pillars}</div></div>
+    <div class="reading"><h3>Planetas en signos y casas</h3>${planets}</div>
+    <div class="reading"><h3>Aspectos más exactos</h3>${topAsp || '<p class="muted">No hay aspectos mayores cerrados.</p>'}</div>`;
+}
+
+function computeNatal() {
+  const res = readPerson('n');
+  const err = $('#natal-error');
+  if (res.error) { err.textContent = res.error; err.hidden = false; return false; }
+  err.hidden = true;
+  natal = { data: res.data, chart: computeChart({ ...res.data, houseSystem: $('#house-system').value }) };
+  store.set('natal', rawPerson('n')); store.set('houseSystem', $('#house-system').value);
+  renderNatal();
+  return true;
+}
+
+/* ── Sinastría ────────────────────────────────────────────────────── */
+let syn = null, biCenter = 'a';
+const elCompat = (e1, e2) => {
+  if (e1 === e2) return { v: 1, t: 'Afín' };
+  const pair = [e1, e2].sort().join('-');
+  if (pair === 'aire-fuego' || pair === 'agua-tierra') return { v: 0.85, t: 'Complementario' };
+  return { v: 0.35, t: 'Desafiante' };
+};
+function categoriesFor(a, b) {
+  const has = (k) => a === k || b === k;
+  const any = (...ks) => ks.some((k) => (a === k ? true : b === k));
+  const other = (k) => (a === k ? b : a);
+  const out = [];
+  if ((has('venus') && has('mars')) || (has('mars') && has('asc')) || (has('venus') && has('asc')) || (has('sun') && has('venus')) ||
+      (has('pluto') && any('venus', 'mars')) || (a === 'mars' && b === 'mars') || (has('sun') && has('mars'))) out.push('atraccion');
+  if (has('moon') && ['moon', 'sun', 'venus', 'asc', 'jupiter', 'saturn', 'mars', 'mercury'].includes(other('moon'))) out.push('emocion');
+  if (has('mercury') && ['mercury', 'sun', 'moon', 'venus', 'jupiter', 'asc', 'uranus', 'mars'].includes(other('mercury'))) out.push('comunicacion');
+  if ((has('saturn') && ['sun', 'moon', 'venus', 'asc', 'mars', 'mercury'].includes(other('saturn'))) || (a === 'sun' && b === 'sun') || (has('sun') && has('moon') && a !== b)) out.push('compromiso');
+  if ((has('jupiter') && ['sun', 'moon', 'venus', 'mercury', 'mars', 'asc'].includes(other('jupiter'))) || (has('node') && ['sun', 'moon', 'venus', 'mars', 'asc'].includes(other('node')))) out.push('crecimiento');
+  return out;
+}
+function aspectValue(asp, a, b, cat) {
+  const n = ASP[asp.type].nature, w = 0.5 + 0.5 * asp.strength;
+  const heavy = [a, b].some((k) => k === 'saturn' || k === 'pluto');
+  let v;
+  if (n === 'armónico') v = 1;
+  else if (n === 'tenso') v = cat === 'atraccion' ? 0.4 : -0.8;
+  else if (n === 'mixto') v = heavy ? (cat === 'compromiso' ? 0.6 : -0.2) : 1;
+  else v = asp.type === 'qx' ? -0.2 : 0.15;
+  return v * w;
+}
+function scoreSyn(A, B, cross) {
+  const cats = Object.fromEntries(CATEGORIES.map((c) => [c.key, { sum: 0, n: 0, list: [] }]));
+  for (const asp of cross) {
+    for (const c of categoriesFor(asp.a, asp.b)) {
+      const v = aspectValue(asp, asp.a, asp.b, c);
+      cats[c].sum += v; cats[c].n++; cats[c].list.push({ asp, v });
+    }
+  }
+  for (const c of Object.values(cats)) {
+    c.score = c.n ? Math.round(50 + 50 * Math.tanh(c.sum / 2.5)) : 45;
+    c.list.sort((x, y) => Math.abs(y.v) - Math.abs(x.v));
+  }
+  const pairs = [['sun', 'sun'], ['moon', 'moon'], ['sun', 'moon'], ['moon', 'sun'], ['venus', 'mars'], ['mars', 'venus'], ['asc', 'asc'], ['venus', 'venus']]
+    .filter(([x, y]) => A.pos[x] && B.pos[y])
+    .map(([x, y]) => { const ea = signOf(A.pos[x].lon).el, eb = signOf(B.pos[y].lon).el; return { x, y, ea, eb, ...elCompat(ea, eb) }; });
+  const elemScore = Math.round(100 * pairs.reduce((s, p) => s + p.v, 0) / pairs.length);
+  const catAvg = CATEGORIES.reduce((s, c) => s + cats[c.key].score, 0) / CATEGORIES.length;
+  return { cats, pairs, elemScore, overall: Math.round(0.75 * catAvg + 0.25 * elemScore) };
+}
+const scoreLabel = (s) => (s >= 75 ? 'Muy alta' : s >= 60 ? 'Alta' : s >= 45 ? 'Media' : 'Retadora');
+function scoreRing(v) {
+  const r = 46, c = 2 * Math.PI * r;
+  return `<svg class="score-ring" viewBox="0 0 112 112" role="img" aria-label="Afinidad ${v} de 100"><circle cx="56" cy="56" r="${r}" class="bgc"/><circle cx="56" cy="56" r="${r}" class="fgc" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 56 56)"/><text x="56" y="58" text-anchor="middle" dominant-baseline="central">${v}</text></svg>`;
+}
+function synText(asp, nA, nB) {
+  const pair = SYN_PAIR[`${asp.a}-${asp.b}`] || SYN_PAIR[`${asp.b}-${asp.a}`];
+  const heavy = SYN_PLANET[asp.a] || SYN_PLANET[asp.b];
+  const theme = pair || heavy || `${PLANET_SHORT[asp.a]} y ${PLANET_SHORT[asp.b]}`;
+  return `${cap(withArticle(asp.a))} de ${esc(nA)} y ${withArticle(asp.b)} de ${esc(nB)}: este contacto ${SYN_NATURE[ASP[asp.type].nature]} ${theme.startsWith('la ') || theme.startsWith('el ') || theme.startsWith('los ') || theme.startsWith('las ') ? theme : 'el terreno de ' + theme}.`;
+}
+
+function renderSyn() {
+  const { A, B, dA, dB, cross, score } = syn;
+  const nA = dA.name, nB = dB.name;
+  const pill = (ch, key) => ch.pos[key] ? `${sgl(signOf(ch.pos[key].lon))} ${signOf(ch.pos[key].lon).name}` : '<span class="muted">sin hora</span>';
+  const whoRow = (ch, d, cls) => `<div class="pillar"><div class="eyebrow"><span class="dot" style="background:var(--ring-${cls})"></span> ${esc(d.name)}${d.example ? ' <span class="sample">Ejemplo</span>' : ''}</div>
+     <b style="font-weight:500;font-size:.88rem">☉${VS} ${pill(ch, 'sun')} · ☽${VS} ${pill(ch, 'moon')} · AC ${pill(ch, 'asc')}</b>
+     <div class="note">${fmtDate(d.y, d.mo, d.d)} · ${esc(d.placeLabel)}</div></div>`;
+  $('#syn-summary').innerHTML = `<div class="score">${scoreRing(score.overall)}<div style="display:grid;gap:6px;min-width:0">
+      <span class="eyebrow">Afinidad global · ${scoreLabel(score.overall)}</span><h2>${esc(nA)} y ${esc(nB)}</h2>
+      <p class="note">${cross.filter((a) => ASP[a.type].nature === 'armónico').length} aspectos armónicos, ${cross.filter((a) => ASP[a.type].nature === 'tenso').length} tensos y ${cross.filter((a) => a.type === 'conj').length} conjunciones entre ambas cartas.</p></div></div>
+    <div class="pillars" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${whoRow(A, dA, 'a')}${whoRow(B, dB, 'b')}</div>`;
+
+  // Doble rueda
+  const drawBi = () => {
+    const inner = biCenter === 'a' ? A : B, outer = biCenter === 'a' ? B : A;
+    const iCls = biCenter === 'a' ? 'a' : 'b', oCls = biCenter === 'a' ? 'b' : 'a';
+    const slow = ['uranus', 'neptune', 'pluto'];
+    const asp = cross.filter((x) => ASP[x.type].nature !== 'menor' && !BODY[x.a].minor && !BODY[x.b].minor && x.orb <= 4 && !(slow.includes(x.a) && slow.includes(x.b)))
+      .map((x) => ({ l1: A.pos[x.a].lon, l2: B.pos[x.b].lon, type: x.type, strength: x.strength }));
+    $('#bi-wheel').innerHTML = wheelSVG({
+      ref: inner.asc ?? 0, houses: inner.houses, bi: true, aspects: asp,
+      rings: [{ items: ringItems(inner.pos, true), r: 184, cls: iCls, minSep: 9 }, { items: ringItems(outer.pos, true), r: 228, cls: oCls, minSep: 7.5 }],
+    });
+    $('#bi-note').textContent = inner.houses ? `Casas de ${biCenter === 'a' ? nA : nB}.` : 'Sin hora de nacimiento en la carta central: se muestra con 0° Aries a la izquierda y sin casas.';
+  };
+  $('#s-birueda').innerHTML = `<div class="section-title"><p class="panel-intro">La carta central marca las casas; la exterior muestra dónde caen los planetas de la otra persona. Las líneas unen aspectos entre ambas cartas.</p>
+      <div class="chips" id="bi-center" role="group" aria-label="Carta central"><button type="button" class="chip" data-c="a" aria-pressed="${biCenter === 'a'}">Centro: ${esc(nA)}</button><button type="button" class="chip" data-c="b" aria-pressed="${biCenter === 'b'}">Centro: ${esc(nB)}</button></div></div>
+    <div class="wheel-box"><div id="bi-wheel" style="width:100%;display:grid;justify-items:center"></div>
+    ${legend(`<span><span class="dot" style="background:var(--ring-a)"></span>${esc(nA)}</span><span><span class="dot" style="background:var(--ring-b)"></span>${esc(nB)}</span>`)}<p class="note" id="bi-note"></p></div>`;
+  $('#bi-center').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    biCenter = b.dataset.c; $$('#bi-center .chip').forEach((c) => c.setAttribute('aria-pressed', c === b)); drawBi();
+  });
+  drawBi();
+
+  // Aspectos cruzados
+  const rows = BODIES.filter((b) => A.pos[b.key]).map((b) => b.key), cols = BODIES.filter((b) => B.pos[b.key]).map((b) => b.key);
+  const map = {}; cross.forEach((a) => { map[a.a + '|' + a.b] = a; });
+  $('#s-aspectos').innerHTML = `<p class="panel-intro">Filas: astros de <b>${esc(nA)}</b>. Columnas: astros de <b>${esc(nB)}</b>. Los orbes de sinastría son algo más estrechos que en la carta natal.</p>
+    ${aspectGrid(rows, cols, (r, c) => map[r + '|' + c], false)}
+    <div class="section-title"><h3>Lista de contactos</h3>${chipsHTML('s-chips')}</div><div id="s-asp-list" class="reading"></div>`;
+  const drawList = (f) => {
+    const list = aspFilter(cross, f);
+    $('#s-asp-list').innerHTML = list.length ? list.map((a) => `<article class="item"><h3><span style="color:var(--ring-a)">${gl(a.a)}</span> ${BODY[a.a].name} ${aspBadge(a)} <span style="color:var(--ring-b)">${gl(a.b)}</span> ${BODY[a.b].name} <span class="mono muted" style="font-size:.82rem">orbe ${orbTxt(a.orb)}</span></h3><p>${synText(a, nA, nB)}</p></article>`).join('') : '<div class="empty-state">No hay contactos de este tipo.</div>';
+  };
+  drawList('all'); bindChips('s-chips', drawList);
+
+  // Casas superpuestas
+  const overlay = (from, to, nFrom, nTo, cls) => {
+    if (!to.houses) return `<div class="empty-state">Hace falta la hora de nacimiento de ${esc(nTo)} para conocer sus casas.</div>`;
+    return BODIES.filter((b) => !b.angle && from.pos[b.key]).map((b) => {
+      const h = houseOf(from.pos[b.key].lon, to.houses);
+      return `<article class="item"><h3><span style="color:var(--ring-${cls})">${gl(b.key)}</span> ${b.name} de ${esc(nFrom)} <span class="muted">→</span> Casa ${h} de ${esc(nTo)} <span class="badge">${HOUSE_NAME[h - 1]}</span></h3>
+        <p>${cap(PLANET_SHORT[b.key])} de ${esc(nFrom)} activa en ${esc(nTo)} ${HOUSE_THEME[h - 1]}.</p></article>`;
+    }).join('');
+  };
+  $('#s-casas').innerHTML = `<p class="panel-intro">Dónde caen los planetas de una persona dentro de las casas de la otra: qué áreas de su vida despierta.</p>
+    <div class="cols" style="align-items:start"><div class="reading"><h3>${esc(nA)} en las casas de ${esc(nB)}</h3>${overlay(A, B, nA, nB, 'a')}</div>
+    <div class="reading"><h3>${esc(nB)} en las casas de ${esc(nA)}</h3>${overlay(B, A, nB, nA, 'b')}</div></div>`;
+
+  // Compuesta
+  const comp = { pos: {}, houses: null };
+  for (const k of Object.keys(A.pos)) if (B.pos[k]) comp.pos[k] = { lon: midpoint(A.pos[k].lon, B.pos[k].lon), speed: 0, retro: false };
+  if (A.houses && B.houses) comp.houses = A.houses.map((c, i) => midpoint(c, B.houses[i]));
+  for (const k in comp.pos) comp.pos[k].house = comp.houses ? houseOf(comp.pos[k].lon, comp.houses) : null;
+  comp.aspects = findAspects(comp.pos, comp.pos, false);
+  const compRows = BODIES.filter((b) => comp.pos[b.key]).map((b) => `<tr><td>${pname(b.key)}</td><td>${signTag(comp.pos[b.key].lon)}</td><td class="mono">${comp.pos[b.key].house ?? '—'}</td></tr>`).join('');
+  const compRead = ['sun', 'moon', 'venus', 'asc'].filter((k) => comp.pos[k]).map((k) => {
+    const s = signOf(comp.pos[k].lon), h = comp.pos[k].house;
+    const what = { sun: 'El propósito de la relación', moon: 'La vida emocional en común', venus: 'La forma de quererse', asc: 'La imagen que la pareja proyecta' }[k];
+    return `<article class="item"><h3>${gl(k)} ${BODY[k].name} compuesto en ${s.name}${h ? ` <span class="muted" style="font-size:.9rem">· Casa ${h}</span>` : ''}</h3><p>${what} se vive ${SIGN_TEXT[s.key].style}${h ? `, con foco en ${HOUSE_THEME[h - 1]}` : ''}.</p></article>`;
+  }).join('');
+  $('#s-compuesta').innerHTML = `<p class="panel-intro">La carta compuesta toma el punto medio de cada par de planetas y describe la relación como si fuera una tercera persona.</p>
+    <div class="wheel-box">${wheelSVG({
+      ref: comp.pos.asc ? comp.pos.asc.lon : 0, houses: comp.houses,
+      rings: [{ items: ringItems(comp.pos, true), r: 222, degR: 194, cls: 'b', minSep: 7.5 }],
+      aspects: comp.aspects.filter((a) => !BODY[a.a].minor && !BODY[a.b].minor).map((a) => ({ l1: comp.pos[a.a].lon, l2: comp.pos[a.b].lon, type: a.type, strength: a.strength })),
+    })}${legend()}${comp.houses ? '' : '<p class="note">Sin las dos horas de nacimiento no hay Ascendente ni casas compuestas.</p>'}</div>
+    <div class="cols" style="align-items:start"><div class="tbl-wrap"><table><thead><tr><th>Astro</th><th>Punto medio</th><th>Casa</th></tr></thead><tbody>${compRows}</tbody></table></div>
+    <div class="reading">${compRead}</div></div>`;
+
+  // Elementos
+  const bA = balance(A), bB = balance(B);
+  const tA = Object.values(bA.el).reduce((a, b) => a + b, 0), tB = Object.values(bB.el).reduce((a, b) => a + b, 0);
+  const mA = Object.values(bA.mod).reduce((a, b) => a + b, 0), mB = Object.values(bB.mod).reduce((a, b) => a + b, 0);
+  const dual = (label, va, ta, vb, tb, cls) => `<div class="bar dual"><span>${label}</span><div class="track"><div><div class="fill a" style="width:${(100 * va / ta).toFixed(1)}%"></div></div><div><div class="fill b" style="width:${(100 * vb / tb).toFixed(1)}%"></div></div></div><span class="val">${Math.round(100 * va / ta)}<br>${Math.round(100 * vb / tb)}</span></div>`;
+  const pairRows = score.pairs.map((p) => `<tr><td>${gl(p.x)} ${BODY[p.x].name} <span class="muted">de ${esc(nA)}</span></td><td><span class="el-${p.ea}">${cap(p.ea)}</span> · <span class="el-${p.eb}">${cap(p.eb)}</span></td><td>${gl(p.y)} ${BODY[p.y].name} <span class="muted">de ${esc(nB)}</span></td><td><span class="badge ${p.v === 1 ? 'dom' : p.v > 0.5 ? 'exa' : 'exi'}">${p.t}</span></td></tr>`).join('');
+  const lowA = Object.entries(bA.el).filter(([, v]) => v / tA < 0.12).map(([k]) => k), lowB = Object.entries(bB.el).filter(([, v]) => v / tB < 0.12).map(([k]) => k);
+  const fills = lowA.filter((e) => bB.el[e] / tB > 0.3).map((e) => `${esc(nB)} aporta el ${e} que le falta a ${esc(nA)}.`)
+    .concat(lowB.filter((e) => bA.el[e] / tA > 0.3).map((e) => `${esc(nA)} aporta el ${e} que le falta a ${esc(nB)}.`));
+  $('#s-elementos').innerHTML = `<p class="panel-intro">Comparación del temperamento de cada persona. La barra superior es <b>${esc(nA)}</b> y la inferior <b>${esc(nB)}</b>.</p>
+    <div class="cols">
+      <article class="item"><h3>Elementos</h3><div class="bars">${['fuego', 'tierra', 'aire', 'agua'].map((e) => dual(cap(e), bA.el[e], tA, bB.el[e], tB)).join('')}</div>
+        <p class="note">${fills.length ? fills.join(' ') : `Elemento dominante: ${dominant(bA.el)} en ${esc(nA)} y ${dominant(bB.el)} en ${esc(nB)}.`}</p></article>
+      <article class="item"><h3>Modalidades</h3><div class="bars">${['cardinal', 'fijo', 'mutable'].map((m) => dual(cap(m), bA.mod[m], mA, bB.mod[m], mB)).join('')}</div>
+        <p class="note">${dominant(bA.mod) === dominant(bB.mod) ? `Ambos comparten modalidad ${dominant(bA.mod)}: ritmo parecido, aunque pueden competir.` : `Ritmos distintos (${dominant(bA.mod)} y ${dominant(bB.mod)}): se complementan si respetan los tiempos del otro.`}</p></article>
+    </div>
+    <h3>Combinación de elementos clave</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>${esc(nA)}</th><th>Elementos</th><th>${esc(nB)}</th><th>Relación</th></tr></thead><tbody>${pairRows}</tbody></table></div>`;
+
+  // Compatibilidad
+  const catHTML = CATEGORIES.map((c) => {
+    const k = score.cats[c.key];
+    const top = k.list.slice(0, 3).map(({ asp }) => `<span class="badge ${natCls(ASP[asp.type].nature)}">${BODY[asp.a].name} <span class="gl">${ASP[asp.type].glyph}${VS}</span> ${BODY[asp.b].name}</span>`).join(' ');
+    return `<article class="item cat"><div class="cat-head"><b>${c.name}</b><span class="mono">${k.score}<span class="muted">/100</span></span></div>
+      <div class="bar" style="grid-template-columns:1fr"><div class="track"><div class="fill" style="width:${k.score}%"></div></div></div>
+      <p>${c.desc} ${k.n ? '' : 'Pocos contactos directos en esta área.'}</p>${top ? `<div class="chips">${top}</div>` : ''}</article>`;
+  }).join('');
+  $('#s-compat').innerHTML = `<div class="score card" style="padding:16px">${scoreRing(score.overall)}<div style="display:grid;gap:6px">
+      <span class="eyebrow">Afinidad global</span><h2>${scoreLabel(score.overall)}</h2>
+      <p class="note">Combina los aspectos entre ambas cartas por área (75 %) y la afinidad de elementos de Sol, Luna, Venus, Marte y Ascendente (25 %, aquí ${score.elemScore}/100). Los aspectos tensos restan en casi todas las áreas, salvo en atracción, donde aportan chispa.</p></div></div>
+    <div class="cols">${catHTML}</div>
+    <p class="note">Es una puntuación orientativa: una relación depende de mucho más que de una carta. Úsala para conversar, no para decidir.</p>`;
+}
+
+function computeSyn() {
+  const ra = readPerson('a'), rb = readPerson('b');
+  const err = $('#syn-error');
+  const e = ra.error || rb.error;
+  if (e) { err.textContent = e; err.hidden = false; return false; }
+  err.hidden = true;
+  const hs = $('#house-system').value;
+  const A = computeChart({ ...ra.data, houseSystem: hs }), B = computeChart({ ...rb.data, houseSystem: hs });
+  const cross = findAspects(A.pos, B.pos, true);
+  syn = { A, B, dA: ra.data, dB: rb.data, cross, score: scoreSyn(A, B, cross) };
+  store.set('synA', rawPerson('a')); store.set('synB', rawPerson('b'));
+  renderSyn();
+  return true;
+}
+
+/* ── Arranque ─────────────────────────────────────────────────────── */
+const exampleRaw = (i) => { const e = EXAMPLES[i]; const c = findCity(e.city); return { ...e, tz: c.tz }; };
+function collapseOnMobile(id, target) {
+  if (window.innerWidth < 980) { $(id).open = false; try { $(target).scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* sin scroll */ } }
+}
+
+function boot() {
+  if (typeof Astronomy === 'undefined') {
+    $('#natal-summary').innerHTML = '<p class="error">No se pudo cargar el motor astronómico. Revisa tu conexión y recarga la página.</p>';
+    return;
+  }
+  ['n', 'a', 'b'].forEach(setupPerson);
+  refreshLoadSelects();
+  $('#house-system').value = store.get('houseSystem', 'placidus');
+  fillPerson('n', store.get('natal', null) || exampleRaw(0));
+  fillPerson('a', store.get('synA', null) || exampleRaw(0));
+  fillPerson('b', store.get('synB', null) || exampleRaw(1));
+
+  const hash = (location.hash || '').slice(1);
+  if (hash === 'natal' || hash === 'sinastria') tabState.main = hash;
+  setupTabs('main', 'natal'); setupTabs('natal', 'rueda'); setupTabs('syn', 'birueda');
+
+  if (!computeNatal()) { fillPerson('n', exampleRaw(0)); computeNatal(); }
+  if (!computeSyn()) { fillPerson('a', exampleRaw(0)); fillPerson('b', exampleRaw(1)); computeSyn(); }
+
+  $('#natal-form').addEventListener('submit', (e) => { e.preventDefault(); if (computeNatal()) collapseOnMobile('#natal-form-card', '#natal-content'); });
+  $('#house-system').addEventListener('change', () => { computeNatal(); if (syn) computeSyn(); });
+  $('#syn-form').addEventListener('submit', (e) => { e.preventDefault(); if (computeSyn()) collapseOnMobile('#syn-form-card', '#syn-content'); });
+  $('#syn-swap').addEventListener('click', () => { const a = rawPerson('a'), b = rawPerson('b'); fillPerson('a', b); fillPerson('b', a); computeSyn(); });
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-copy]'); if (!b) return;
+    fillPerson(b.dataset.copy, rawPerson('n'));
+  });
+  $('#natal-save').addEventListener('click', () => {
+    const r = rawPerson('n'), msg = $('#natal-saved');
+    if (!r.name) { msg.textContent = 'Escribe un nombre para guardar la persona.'; msg.hidden = false; return; }
+    const res = readPerson('n');
+    if (res.error) { msg.textContent = res.error; msg.hidden = false; return; }
+    const list = store.get('personas', []).filter((x) => x.name !== r.name);
+    list.push({ ...r, example: false }); store.set('personas', list);
+    refreshLoadSelects();
+    msg.textContent = `${r.name} guardada en este navegador. Puedes cargarla también en «Comparar cartas».`; msg.hidden = false;
+  });
+  if (window.innerWidth < 980) { $('#natal-form-card').open = false; $('#syn-form-card').open = false; }
+}
+boot();
+</script>
+</body>
+</html>

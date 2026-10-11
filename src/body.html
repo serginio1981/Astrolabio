@@ -1,0 +1,107 @@
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="var(--brass)" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="none" stroke="var(--brass)" stroke-width="1"/><path d="M20 3v34M3 20h34" stroke="var(--brass)" stroke-width="1"/><path d="M9 31L31 9" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="20" r="2.5" fill="var(--ink)"/></svg>
+      <h1>Astrolabio</h1>
+    </div>
+    <nav class="main-tabs" role="tablist" aria-label="Módulo" data-group="main">
+      <button role="tab" id="tab-main-natal" data-tab="natal" aria-controls="view-natal">Carta natal</button>
+      <button role="tab" id="tab-main-sinastria" data-tab="sinastria" aria-controls="view-sinastria">Comparar cartas</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ═══ CARTA NATAL ═══ -->
+  <section class="view" id="view-natal" role="tabpanel" data-group="main" data-panel="natal" aria-labelledby="tab-main-natal">
+    <div class="layout">
+      <aside class="side">
+        <details class="card form-card" id="natal-form-card" open>
+          <summary><span><span class="eyebrow">Datos de nacimiento</span></span><span class="chev" aria-hidden="true">▾</span></summary>
+          <form class="form-body" id="natal-form" novalidate>
+            <div data-person="n"></div>
+            <div class="field">
+              <label for="house-system">Sistema de casas</label>
+              <select id="house-system">
+                <option value="placidus">Placidus</option>
+                <option value="equal">Casas iguales</option>
+                <option value="whole">Signo entero</option>
+              </select>
+            </div>
+            <p class="error" id="natal-error" hidden></p>
+            <div class="actions">
+              <button class="btn primary" type="submit">Calcular carta</button>
+              <button class="btn" type="button" id="natal-save">Guardar persona</button>
+            </div>
+            <p class="note" id="natal-saved" hidden></p>
+          </form>
+        </details>
+      </aside>
+
+      <div class="content" id="natal-content">
+        <div class="card summary" id="natal-summary"></div>
+        <div style="height:16px"></div>
+        <div class="subtabs" role="tablist" aria-label="Secciones de la carta" data-group="natal">
+          <button role="tab" data-tab="rueda">Rueda</button>
+          <button role="tab" data-tab="planetas">Planetas</button>
+          <button role="tab" data-tab="casas">Casas</button>
+          <button role="tab" data-tab="aspectos">Aspectos</button>
+          <button role="tab" data-tab="equilibrio">Equilibrio</button>
+          <button role="tab" data-tab="lectura">Lectura</button>
+        </div>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="rueda" id="n-rueda"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="planetas" id="n-planetas"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="casas" id="n-casas"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="aspectos" id="n-aspectos"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="equilibrio" id="n-equilibrio"></section>
+        <section class="panel" role="tabpanel" data-group="natal" data-panel="lectura" id="n-lectura"></section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SINASTRÍA ═══ -->
+  <section class="view" id="view-sinastria" role="tabpanel" data-group="main" data-panel="sinastria" aria-labelledby="tab-main-sinastria">
+    <div class="layout syn">
+      <details class="card form-card" id="syn-form-card" open>
+        <summary><span class="eyebrow">Las dos personas</span><span class="chev" aria-hidden="true">▾</span></summary>
+        <form id="syn-form" novalidate>
+          <div class="persons">
+            <div class="person" data-person="a"></div>
+            <div class="person" data-person="b"></div>
+          </div>
+          <div class="form-body" style="padding-top:0">
+            <p class="error" id="syn-error" hidden></p>
+            <div class="actions">
+              <button class="btn primary" type="submit">Comparar cartas</button>
+              <button class="btn" type="button" id="syn-swap">Intercambiar A y B</button>
+            </div>
+          </div>
+        </form>
+      </details>
+
+      <div class="content" id="syn-content">
+        <div class="card summary" id="syn-summary"></div>
+        <div style="height:16px"></div>
+        <div class="subtabs" role="tablist" aria-label="Secciones de la comparación" data-group="syn">
+          <button role="tab" data-tab="birueda">Doble rueda</button>
+          <button role="tab" data-tab="aspectos">Aspectos cruzados</button>
+          <button role="tab" data-tab="casas">Casas superpuestas</button>
+          <button role="tab" data-tab="compuesta">Carta compuesta</button>
+          <button role="tab" data-tab="elementos">Elementos</button>
+          <button role="tab" data-tab="compat">Compatibilidad</button>
+        </div>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="birueda" id="s-birueda"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="aspectos" id="s-aspectos"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="casas" id="s-casas"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="compuesta" id="s-compuesta"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="elementos" id="s-elementos"></section>
+        <section class="panel" role="tabpanel" data-group="syn" data-panel="compat" id="s-compat"></section>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">Zodiaco tropical, posiciones geocéntricas aparentes calculadas en tu navegador con Astronomy Engine. Nodo Norte y Lilith son medios. El horario de verano histórico se toma de la base de zonas horarias del navegador. Las lecturas son orientativas y sirven para reflexionar, no para tomar decisiones.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
