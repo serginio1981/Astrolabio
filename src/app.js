@@ -68,6 +68,7 @@ function setupTabs(group, fallback) {
     if (e.key === 'End') j = tabs.length - 1;
     if (j !== null) { e.preventDefault(); activate(group, tabs[j].dataset.tab, true); }
   });
+  tabs.forEach((b) => { const panel = $(`[role="tabpanel"][data-group="${group}"][data-panel="${b.dataset.tab}"]`); if (panel) panel.dataset.printTitle = b.textContent.trim(); });
   const valid = tabs.map((b) => b.dataset.tab);
   activate(group, valid.includes(tabState[group]) ? tabState[group] : fallback);
 }
@@ -722,4 +723,53 @@ function boot() {
   });
   if (window.innerWidth < 980) { $('#natal-form-card').open = false; $('#syn-form-card').open = false; }
 }
+
+/* ── Exportar a PDF (impresión del navegador) ─────────────────────── */
+const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+function preparePrint(withNatal, withSyn) {
+  document.body.classList.add('printing');
+  document.body.classList.toggle('p-natal', withNatal);
+  document.body.classList.toggle('p-syn', withSyn);
+  if (withNatal && natal) renderNatal();
+  if (withSyn && syn) renderSyn();
+  $('#print-date').textContent = 'Informe generado el ' + new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+  const names = [withNatal && natal ? natal.data.name : null, withSyn && syn ? `${syn.dA.name} y ${syn.dB.name}` : null].filter(Boolean);
+  document.title = `Astrolabio – ${names.join(' · ')}`;
+}
+function endPrint() {
+  document.body.classList.remove('printing', 'p-natal', 'p-syn');
+  document.title = 'Astrolabio';
+}
+window.addEventListener('beforeprint', () => {
+  if (!document.body.classList.contains('printing')) {
+    const m = tabState.main === 'sinastria';
+    preparePrint(!m, m);
+  }
+});
+window.addEventListener('afterprint', endPrint);
+
+function setupExport() {
+  const dlg = $('#export-dlg');
+  $('#export-btn').addEventListener('click', () => {
+    $('#exp-natal-name').textContent = natal ? natal.data.name : '—';
+    $('#exp-syn-name').textContent = syn ? `${syn.dA.name} y ${syn.dB.name}` : '—';
+    $('#exp-natal').checked = !!natal; $('#exp-natal').disabled = !natal;
+    $('#exp-syn').checked = !!syn; $('#exp-syn').disabled = !syn;
+    $('#export-error').hidden = true;
+    $('#export-frame-note').hidden = !inFrame;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else { preparePrint(!!natal, !!syn); window.print(); }
+  });
+  $('#export-form').addEventListener('submit', (e) => {
+    if (e.submitter && e.submitter.value === 'cancel') return;
+    const withNatal = $('#exp-natal').checked, withSyn = $('#exp-syn').checked;
+    if (!withNatal && !withSyn) { e.preventDefault(); const er = $('#export-error'); er.textContent = 'Marca al menos una sección.'; er.hidden = false; return; }
+    dlg.addEventListener('close', () => {
+      preparePrint(withNatal, withSyn);
+      setTimeout(() => window.print(), 50);
+    }, { once: true });
+  });
+}
+
 boot();
+setupExport();

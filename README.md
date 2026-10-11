@@ -12,6 +12,12 @@ Aplicación web responsiva para generar una carta astral y comparar dos cartas. 
 
 Abre `index.html` en el navegador, o publícalo con GitHub Pages (rama `main`, carpeta raíz).
 
+### Exportar a PDF
+
+El botón **Exportar PDF** de la cabecera genera un informe A4 con todas las pestañas de la carta natal y, si se marca, de la comparación. Usa la impresión del navegador: en el diálogo elige **Guardar como PDF**. El PDF sale siempre en tema claro, con texto seleccionable y la rueda en vector. También funciona con Ctrl/Cmd + P, que exporta el módulo abierto.
+
+Las vistas incrustadas que bloquean la impresión (por ejemplo, la vista previa de claude.ai) no pueden exportar; abre `index.html` directamente.
+
 ## Desarrollo
 
 El código fuente está en `src/` y se une en `index.html` con:
