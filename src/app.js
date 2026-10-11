@@ -140,7 +140,7 @@ function citySearch(q) {
     if (name.startsWith(n)) s = 0; else if (name.includes(n)) s = 1; else if (full.includes(n)) s = 2;
     if (s >= 0) scored.push([s, c]);
   }
-  return scored.sort((a, b) => a[0] - b[0]).slice(0, 8).map((x) => x[1]);
+  return scored.sort((a, b) => a[0] - b[0]).slice(0, 12).map((x) => x[1]);
 }
 
 function setupPerson(p) {
@@ -224,7 +224,11 @@ function readPerson(p) {
     placeLabel = r.placeText && !placeSel[p] ? r.placeText : 'Coordenadas manuales';
   } else {
     let c = placeSel[p];
-    if (!c && r.placeText.trim()) { const found = citySearch(r.placeText.split(',')[0]); if (found.length) c = found[0]; }
+    if (!c && r.placeText.trim()) {
+      const typed = normTxt(r.placeText);
+      c = CITIES.find((x) => normTxt(`${x.name}, ${x.country}`) === typed) || null;
+      if (!c) { const found = citySearch(r.placeText.split(',')[0]); if (found.length) c = found[0]; }
+    }
     if (!c) return { error: `${who}elige un lugar de la lista o introduce coordenadas.` };
     placeSel[p] = c; lat = c.lat; lon = c.lon; zone = c.tz; placeLabel = `${c.name}, ${c.country}`;
   }
