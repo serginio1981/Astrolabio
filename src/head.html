@@ -258,6 +258,9 @@ table.agrid th.ang, table.agrid td.ang { font-family: var(--f-mono); font-size: 
   .brand h1 { font-size: 1.35rem; }
   .main-tabs [role="tab"] { padding: 7px 12px; }
 }
+#syn-content.is-empty .subtabs, #syn-content.is-empty [role="tabpanel"] { display: none !important; }
+#syn-content.is-empty #syn-summary { padding: 0; border: 0; background: transparent; }
+
 /* Guardado en la nube */
 .cloud-only { display: none; }
 body.has-db .cloud-only { display: grid; }

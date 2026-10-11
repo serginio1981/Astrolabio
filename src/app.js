@@ -75,9 +75,7 @@ function setupTabs(group, fallback) {
 
 /* ── Formularios de persona ───────────────────────────────────────── */
 const EXAMPLES = [
-  { id: 'ex-lucia', example: true, name: 'Lucía', date: '1992-03-14', time: '09:20', unknown: false, city: 'Madrid|España' },
-  { id: 'ex-mateo', example: true, name: 'Mateo', date: '1990-11-02', time: '18:45', unknown: false, city: 'Ciudad de México|México' },
-  { id: 'ex-valentina', example: true, name: 'Valentina', date: '1995-07-23', time: '06:10', unknown: false, city: 'Buenos Aires|Argentina' },
+  { id: 'ex-juanita', example: true, name: 'Juanita', date: '2006-09-21', time: '21:00', unknown: false, city: 'Popayán|Colombia' },
 ];
 const findCity = (id) => CITIES.find((c) => `${c.name}|${c.country}` === id) || null;
 let TZS = [];
@@ -678,6 +676,7 @@ function computeSyn() {
   syn = { A, B, dA: ra.data, dB: rb.data, cross, score: scoreSyn(A, B, cross) };
   if (saved.s && saved.s.key !== personKey(rawPerson('a')) + '|' + personKey(rawPerson('b'))) saved.s = null;
   store.set('synA', rawPerson('a')); store.set('synB', rawPerson('b'));
+  $('#syn-content').classList.remove('is-empty');
   renderSyn();
   return true;
 }
@@ -874,16 +873,24 @@ function boot() {
   ['n', 'a', 'b'].forEach(setupPerson);
   refreshLoadSelects();
   $('#house-system').value = store.get('houseSystem', 'placidus');
-  fillPerson('n', store.get('natal', null) || exampleRaw(0));
-  fillPerson('a', store.get('synA', null) || exampleRaw(0));
-  fillPerson('b', store.get('synB', null) || exampleRaw(1));
+  // Datos recordados de visitas anteriores, salvo ejemplos que ya no existen
+  const remembered = (k) => { const r = store.get(k, null); return r && r.example && !EXAMPLES.some((e) => e.name === r.name && e.date === r.date) ? null : r; };
+  const blank = { name: '', date: '', time: '', unknown: false, city: null, example: false };
+  fillPerson('n', remembered('natal') || exampleRaw(0));
+  fillPerson('a', remembered('synA') || exampleRaw(0));
+  fillPerson('b', remembered('synB') || blank);
 
   const hash = (location.hash || '').slice(1);
   if (['natal', 'sinastria', 'guardados'].includes(hash)) tabState.main = hash;
   setupTabs('main', 'natal'); setupTabs('natal', 'rueda'); setupTabs('syn', 'birueda');
 
   if (!computeNatal()) { fillPerson('n', exampleRaw(0)); computeNatal(); }
-  if (!computeSyn()) { fillPerson('a', exampleRaw(0)); fillPerson('b', exampleRaw(1)); computeSyn(); }
+  if (!computeSyn()) {
+    $('#syn-error').hidden = true;
+    $('#syn-content').classList.add('is-empty');
+    $('#syn-summary').innerHTML = `<div class="empty-state">Añade los datos de nacimiento de la persona B y pulsa «Comparar cartas» para ver la doble rueda, los aspectos cruzados y la compatibilidad.</div>`;
+    $('#syn-form-card').open = true;
+  }
 
   $('#natal-form').addEventListener('submit', (e) => { e.preventDefault(); if (computeNatal()) collapseOnMobile('#natal-form-card', '#natal-content'); });
   $('#house-system').addEventListener('change', () => { computeNatal(); if (syn) computeSyn(); });
@@ -903,7 +910,7 @@ function boot() {
     refreshLoadSelects();
     msg.textContent = `${r.name} guardada en este navegador. Puedes cargarla también en «Comparar cartas».`; msg.hidden = false;
   });
-  if (window.innerWidth < 980) { $('#natal-form-card').open = false; $('#syn-form-card').open = false; }
+  if (window.innerWidth < 980) { $('#natal-form-card').open = false; if (syn) $('#syn-form-card').open = false; }
 }
 
 /* ── Exportar a PDF: vista de informe + impresión del navegador ──── */
