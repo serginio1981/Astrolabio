@@ -18,7 +18,7 @@ El botón **Exportar PDF** de la cabecera genera en el navegador un PDF A4 con t
 
 En el mismo diálogo queda la opción **Usar la impresión del navegador** (texto seleccionable), que funciona bien en ordenador pero no en iOS, donde el motor de impresión corta los documentos largos.
 
-Las vistas incrustadas que bloquean descargas (por ejemplo, la vista previa de claude.ai) no pueden exportar; abre `index.html` directamente.
+En la versión publicada en claude.ai la descarga pasa por la capacidad `downloads` del visor, que muestra un aviso de confirmación. Fuera de claude.ai se descarga directamente.
 
 ## Desarrollo
 

@@ -385,7 +385,7 @@ body.report.p-natal.p-syn #view-sinastria { margin-top: 48px; }
   <div class="card">
     <div class="spin" id="pdf-spin" aria-hidden="true"></div>
     <p id="pdf-status">Generando PDF…</p>
-    <div class="actions" id="pdf-done" hidden><a class="btn primary" id="pdf-open" target="_blank" rel="noopener">Abrir PDF</a><button class="btn" type="button" id="pdf-close">Cerrar</button></div>
+    <div class="actions" id="pdf-done" hidden><a class="btn primary" id="pdf-open" target="_blank" rel="noopener">Abrir PDF</a><button class="btn primary" type="button" id="pdf-again" hidden>Guardar otra vez</button><button class="btn" type="button" id="pdf-close">Cerrar</button></div>
   </div>
 </div>
 
@@ -1935,7 +1935,9 @@ function boot() {
 
 /* ── Exportar a PDF: vista de informe + impresión del navegador ──── */
 const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
-let report = null;
+/* En el visor de claude.ai las descargas pasan por la capacidad `downloads`; fuera de él, window.claude no existe */
+const downloadsCap = window.claude && typeof window.claude.use === 'function' ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
+let report = null, savePDF = null;
 function enterReport(withNatal, withSyn, auto) {
   if (report) exitReport();
   if (withNatal && natal) renderNatal();
@@ -2052,7 +2054,7 @@ function cutPlanner(el) {
 
 async function downloadPDF(withNatal, withSyn) {
   const ov = $('#pdf-overlay'), status = $('#pdf-status');
-  ov.hidden = false; $('#pdf-done').hidden = true; $('#pdf-spin').hidden = false; $('#pdf-open').hidden = false;
+  ov.hidden = false; $('#pdf-done').hidden = true; $('#pdf-spin').hidden = false; $('#pdf-open').hidden = false; $('#pdf-again').hidden = true;
   status.textContent = 'Preparando el informe…';
   const restoreScroll = window.scrollY;
   let entered = false;
@@ -2129,19 +2131,44 @@ async function downloadPDF(withNatal, withSyn) {
       doc.text(`${p} / ${n}`, PW - M, PH - 8, { align: 'right' });
     }
     const file = `Astrolabio - ${who.replace(/[\\/:*?"<>|]/g, '')}.pdf`;
-    const url = URL.createObjectURL(doc.output('blob'));
-    const a = $('#pdf-open'); a.href = url; a.download = file;
-    try { doc.save(file); } catch (err) { /* la descarga puede estar bloqueada; queda el botón Abrir */ }
-    status.textContent = `PDF listo: ${n} páginas. Si no se descargó solo, toca «Abrir PDF».`;
-    $('#pdf-done').hidden = false;
+    const blob = doc.output('blob');
+    const pages = n;
+    // Restaurar la vista antes de pedir la descarga
+    $('#pdf-spin').hidden = true;
+    document.body.classList.remove('pdf-capture');
+    if (entered) { exitReport(); entered = false; }
+    window.scrollTo(0, restoreScroll);
+
+    const dl = await downloadsCap;
+    if (dl) {
+      $('#pdf-open').hidden = true;
+      savePDF = async () => {
+        status.textContent = 'Confirma la descarga en el aviso de claude.ai…';
+        $('#pdf-again').hidden = true;
+        try {
+          await dl.save({ filename: file, data: blob });
+          status.textContent = `PDF guardado: ${pages} páginas.`;
+        } catch (err) {
+          const code = err && err.code;
+          status.textContent = code === 'declined' ? 'Descarga cancelada.' : code === 'rate_limited' ? 'Ya hay un aviso de descarga abierto. Espera un momento y vuelve a intentarlo.' : 'Esta vista no permite descargar archivos. Abre index.html del repositorio para exportar.';
+        }
+        $('#pdf-again').hidden = false; $('#pdf-done').hidden = false;
+      };
+      await savePDF();
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = $('#pdf-open'); a.href = url; a.download = file;
+      try { doc.save(file); } catch (err) { /* la descarga puede estar bloqueada; queda el botón Abrir */ }
+      status.textContent = `PDF listo: ${pages} páginas. Si no se descargó solo, toca «Abrir PDF».`;
+      $('#pdf-done').hidden = false;
+    }
   } catch (err) {
     status.textContent = `No se pudo generar el PDF. ${err && err.message ? err.message : ''}`;
     $('#pdf-done').hidden = false; $('#pdf-open').hidden = true;
   } finally {
     $('#pdf-spin').hidden = true;
     document.body.classList.remove('pdf-capture');
-    if (entered) exitReport();
-    window.scrollTo(0, restoreScroll);
+    if (entered) { exitReport(); window.scrollTo(0, restoreScroll); }
   }
 }
 
@@ -2153,7 +2180,9 @@ function setupExport() {
     $('#exp-natal').checked = !!natal; $('#exp-natal').disabled = !natal;
     $('#exp-syn').checked = !!syn; $('#exp-syn').disabled = !syn;
     $('#export-error').hidden = true;
-    $('#export-frame-note').hidden = !inFrame;
+    $('#export-frame-note').hidden = true;
+    $('#export-form button[value="print"]').hidden = inFrame;
+    downloadsCap.then((d) => { $('#export-frame-note').hidden = !(inFrame && !d); });
     if (typeof dlg.showModal === 'function') dlg.showModal();
     else { enterReport(!!natal, !!syn, false); setTimeout(() => window.print(), 300); }
   });
@@ -2169,6 +2198,7 @@ function setupExport() {
   });
   $('#report-print').addEventListener('click', () => window.print());
   $('#pdf-close').addEventListener('click', () => { $('#pdf-overlay').hidden = true; });
+  $('#pdf-again').addEventListener('click', () => { if (savePDF) savePDF(); });
   $('#report-exit').addEventListener('click', exitReport);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && report && !dlg.open) exitReport(); });
 }
