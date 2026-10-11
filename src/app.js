@@ -724,29 +724,37 @@ function boot() {
   if (window.innerWidth < 980) { $('#natal-form-card').open = false; $('#syn-form-card').open = false; }
 }
 
-/* ── Exportar a PDF (impresión del navegador) ─────────────────────── */
+/* ── Exportar a PDF: vista de informe + impresión del navegador ──── */
 const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
-function preparePrint(withNatal, withSyn) {
-  document.body.classList.add('printing');
-  document.body.classList.toggle('p-natal', withNatal);
-  document.body.classList.toggle('p-syn', withSyn);
+let report = null;
+function enterReport(withNatal, withSyn, auto) {
+  if (report) exitReport();
   if (withNatal && natal) renderNatal();
   if (withSyn && syn) renderSyn();
+  report = { hidden: $$('[role="tabpanel"]').map((p) => [p, p.hidden]), scroll: window.scrollY, auto };
+  $$('[role="tabpanel"][data-group="natal"], [role="tabpanel"][data-group="syn"]').forEach((p) => { p.hidden = false; });
+  $('#view-natal').hidden = !withNatal;
+  $('#view-sinastria').hidden = !withSyn;
+  document.body.classList.add('report');
+  document.body.classList.toggle('p-natal', withNatal);
+  document.body.classList.toggle('p-syn', withSyn);
+  $('#report-bar').hidden = false;
   $('#print-date').textContent = 'Informe generado el ' + new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
   const names = [withNatal && natal ? natal.data.name : null, withSyn && syn ? `${syn.dA.name} y ${syn.dB.name}` : null].filter(Boolean);
   document.title = `Astrolabio – ${names.join(' · ')}`;
+  if (!auto) window.scrollTo(0, 0);
 }
-function endPrint() {
-  document.body.classList.remove('printing', 'p-natal', 'p-syn');
+function exitReport() {
+  if (!report) return;
+  report.hidden.forEach(([p, h]) => { p.hidden = h; });
+  document.body.classList.remove('report', 'p-natal', 'p-syn');
+  $('#report-bar').hidden = true;
   document.title = 'Astrolabio';
+  const y = report.scroll; report = null;
+  window.scrollTo(0, y);
 }
-window.addEventListener('beforeprint', () => {
-  if (!document.body.classList.contains('printing')) {
-    const m = tabState.main === 'sinastria';
-    preparePrint(!m, m);
-  }
-});
-window.addEventListener('afterprint', endPrint);
+window.addEventListener('beforeprint', () => { if (!report) enterReport(!!natal, !!syn, true); });
+window.addEventListener('afterprint', () => { if (report && report.auto) exitReport(); });
 
 function setupExport() {
   const dlg = $('#export-dlg');
@@ -758,17 +766,20 @@ function setupExport() {
     $('#export-error').hidden = true;
     $('#export-frame-note').hidden = !inFrame;
     if (typeof dlg.showModal === 'function') dlg.showModal();
-    else { preparePrint(!!natal, !!syn); window.print(); }
+    else { enterReport(!!natal, !!syn, false); setTimeout(() => window.print(), 300); }
   });
   $('#export-form').addEventListener('submit', (e) => {
     if (e.submitter && e.submitter.value === 'cancel') return;
     const withNatal = $('#exp-natal').checked, withSyn = $('#exp-syn').checked;
     if (!withNatal && !withSyn) { e.preventDefault(); const er = $('#export-error'); er.textContent = 'Marca al menos una sección.'; er.hidden = false; return; }
     dlg.addEventListener('close', () => {
-      preparePrint(withNatal, withSyn);
-      setTimeout(() => window.print(), 50);
+      enterReport(withNatal, withSyn, false);
+      setTimeout(() => window.print(), 300);
     }, { once: true });
   });
+  $('#report-print').addEventListener('click', () => window.print());
+  $('#report-exit').addEventListener('click', exitReport);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && report && !dlg.open) exitReport(); });
 }
 
 boot();

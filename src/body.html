@@ -16,7 +16,7 @@
 <dialog id="export-dlg" aria-labelledby="export-title">
   <form method="dialog" id="export-form" class="export-form">
     <h2 id="export-title">Exportar a PDF</h2>
-    <p class="note">Se genera un informe con todas las pestañas. En la ventana de impresión elige <b>Guardar como PDF</b> como destino.</p>
+    <p class="note">Se abre el informe completo con todas las pestañas, sin importar cuál tengas seleccionada, y la ventana de impresión. Elige <b>Guardar como PDF</b> como destino.</p>
     <fieldset>
       <legend class="lbl">Incluir</legend>
       <label class="check"><input type="checkbox" id="exp-natal" checked> Carta natal de <span id="exp-natal-name"></span></label>
@@ -32,6 +32,7 @@
 </dialog>
 
 <main class="wrap">
+  <div class="report-bar" id="report-bar" hidden><p><b>Informe completo</b> · todas las pestañas</p><div class="actions"><button class="btn primary small" type="button" id="report-print">Guardar como PDF</button><button class="btn small" type="button" id="report-exit">Volver</button></div></div>
   <div class="print-head" aria-hidden="true"><span class="print-brand">Astrolabio</span><span id="print-date"></span></div>
   <!-- ═══ CARTA NATAL ═══ -->
   <section class="view" id="view-natal" role="tabpanel" data-group="main" data-panel="natal" aria-labelledby="tab-main-natal">

@@ -266,12 +266,22 @@ table.agrid th.ang, table.agrid td.ang { font-family: var(--f-mono); font-size: 
 }
 /* Exportación */
 .export-btn { margin-left: auto; }
-.top-in .main-tabs { order: 0; }
 dialog { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); padding: 0; width: min(440px, calc(100vw - 32px)); }
 dialog::backdrop { background: rgba(10, 14, 24, .5); }
 .export-form { padding: 20px; display: grid; gap: 14px; }
 .export-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
 .print-head { display: none; }
+.report-bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 25; display: flex; justify-content: space-between; align-items: center; gap: 8px 12px; flex-wrap: wrap; background: var(--brass-soft); border: 1px solid var(--brass); border-radius: var(--r); padding: 10px 14px; margin-top: 16px; }
+.report-bar p { font-size: .88rem; }
+
+/* Vista de informe: todas las pestañas, una tras otra */
+body.report .top, body.report .side, body.report details.form-card, body.report .subtabs, body.report .chips, body.report #bi-center { display: none !important; }
+body.report .print-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-top: 16px; color: var(--muted); font-size: .85rem; }
+body.report .print-brand { font-family: var(--f-display); font-size: 1.3rem; color: var(--ink); }
+body.report .layout, body.report .layout.syn { display: block; }
+body.report .content > [role="tabpanel"] { margin-top: 36px; }
+body.report .content > [role="tabpanel"]::before { content: attr(data-print-title); display: block; font-family: var(--f-display); font-size: 1.6rem; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+body.report.p-natal.p-syn #view-sinastria { margin-top: 48px; }
 
 @media print {
   :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
@@ -285,30 +295,30 @@ dialog::backdrop { background: rgba(10, 14, 24, .5); }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { font-size: 10.5pt; background: #FFFFFF; }
   .wrap { max-width: none; padding: 0; }
-  .top, .side, details.form-card, .subtabs, .chips, .export-btn, dialog, #bi-center, .suggest { display: none !important; }
-  .print-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 14px; font-size: 9pt; color: var(--muted); }
+  .report-bar, dialog, .suggest, .top, .side, details.form-card, .subtabs, .chips, #bi-center, .export-btn { display: none !important; }
+  .print-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 0 0 14px; font-size: 9pt; color: var(--muted); }
   .print-brand { font-family: var(--f-display); font-size: 14pt; color: var(--ink); }
   .view { padding-top: 0; }
   .layout, .layout.syn { display: block; }
-  body.printing:not(.p-natal) #view-natal, body.printing:not(.p-syn) #view-sinastria { display: none !important; }
-  body.printing.p-natal #view-natal[hidden], body.printing.p-syn #view-sinastria[hidden] { display: block !important; }
-  body.printing.p-natal.p-syn #view-sinastria { break-before: page; }
-  [role="tabpanel"][data-panel][hidden] { display: grid !important; }
+  /* Bloques en lugar de grid: Firefox y Safari no reparten un grid largo entre páginas */
+  .panel, .reading, .content, .wheel-box { display: block; }
+  .panel > * + *, .reading > * + * { margin-top: 10px; }
+  .cols { display: block; }
+  .cols > *, #s-asp-list > .item, #s-casas .reading > .item { display: inline-block; width: calc(50% - 8px); vertical-align: top; margin: 0 0 10px; }
+  .cols > *:nth-child(odd), #s-asp-list > .item:nth-child(odd), #s-casas .reading > .item:nth-child(even) { margin-right: 10px; }
+  #s-casas .cols > * { display: block; width: auto; margin-right: 0; }
+  .item { display: block; padding: 10px 12px; }
+  .item > * + * { margin-top: 5px; }
+  .wheel-box { text-align: center; }
+  .wheel { max-width: 150mm; margin: 0 auto; }
+  #s-birueda .wheel { max-width: 128mm; }
   .content > [role="tabpanel"] { break-before: page; margin-top: 0; }
   .content > .subtabs + [role="tabpanel"] { break-before: auto; margin-top: 14px; }
-  .content > [role="tabpanel"]::before { content: attr(data-print-title); font-family: var(--f-display); font-size: 18pt; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
-  .card, .item, .tbl-wrap { box-shadow: none; }
-  .item, .pillar, tr, .bar, .cat, .score { break-inside: avoid; }
-  .reading > h3, .section-title { break-after: avoid; }
+  .content > [role="tabpanel"]::before { content: attr(data-print-title); display: block; font-family: var(--f-display); font-size: 18pt; border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-bottom: 10px; }
+  body.report.p-natal.p-syn #view-sinastria { break-before: page; margin-top: 0; }
+  .item, .pillar, tr, .bar, .cat, .score, .wheel-box, .legend { break-inside: avoid; }
+  h2, h3, .reading > h3, .section-title { break-after: avoid; }
   .tbl-wrap, .grid-wrap { overflow: visible; }
-  td.wrap-cell { min-width: 0; }
-  .wheel { max-width: 150mm; }
-  #s-asp-list, #s-casas .reading { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  #s-casas .reading > h3 { grid-column: 1 / -1; }
-  #s-casas .cols { grid-template-columns: 1fr; }
-  .item { padding: 10px 12px; }
-  .wheel-box { break-inside: avoid; }
-  .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pillars { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .foot { margin-top: 18px; break-inside: avoid; }
 }
@@ -334,7 +344,7 @@ dialog::backdrop { background: rgba(10, 14, 24, .5); }
 <dialog id="export-dlg" aria-labelledby="export-title">
   <form method="dialog" id="export-form" class="export-form">
     <h2 id="export-title">Exportar a PDF</h2>
-    <p class="note">Se genera un informe con todas las pestañas. En la ventana de impresión elige <b>Guardar como PDF</b> como destino.</p>
+    <p class="note">Se abre el informe completo con todas las pestañas, sin importar cuál tengas seleccionada, y la ventana de impresión. Elige <b>Guardar como PDF</b> como destino.</p>
     <fieldset>
       <legend class="lbl">Incluir</legend>
       <label class="check"><input type="checkbox" id="exp-natal" checked> Carta natal de <span id="exp-natal-name"></span></label>
@@ -350,6 +360,7 @@ dialog::backdrop { background: rgba(10, 14, 24, .5); }
 </dialog>
 
 <main class="wrap">
+  <div class="report-bar" id="report-bar" hidden><p><b>Informe completo</b> · todas las pestañas</p><div class="actions"><button class="btn primary small" type="button" id="report-print">Guardar como PDF</button><button class="btn small" type="button" id="report-exit">Volver</button></div></div>
   <div class="print-head" aria-hidden="true"><span class="print-brand">Astrolabio</span><span id="print-date"></span></div>
   <!-- ═══ CARTA NATAL ═══ -->
   <section class="view" id="view-natal" role="tabpanel" data-group="main" data-panel="natal" aria-labelledby="tab-main-natal">
@@ -1892,29 +1903,37 @@ function boot() {
   if (window.innerWidth < 980) { $('#natal-form-card').open = false; $('#syn-form-card').open = false; }
 }
 
-/* ── Exportar a PDF (impresión del navegador) ─────────────────────── */
+/* ── Exportar a PDF: vista de informe + impresión del navegador ──── */
 const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
-function preparePrint(withNatal, withSyn) {
-  document.body.classList.add('printing');
-  document.body.classList.toggle('p-natal', withNatal);
-  document.body.classList.toggle('p-syn', withSyn);
+let report = null;
+function enterReport(withNatal, withSyn, auto) {
+  if (report) exitReport();
   if (withNatal && natal) renderNatal();
   if (withSyn && syn) renderSyn();
+  report = { hidden: $$('[role="tabpanel"]').map((p) => [p, p.hidden]), scroll: window.scrollY, auto };
+  $$('[role="tabpanel"][data-group="natal"], [role="tabpanel"][data-group="syn"]').forEach((p) => { p.hidden = false; });
+  $('#view-natal').hidden = !withNatal;
+  $('#view-sinastria').hidden = !withSyn;
+  document.body.classList.add('report');
+  document.body.classList.toggle('p-natal', withNatal);
+  document.body.classList.toggle('p-syn', withSyn);
+  $('#report-bar').hidden = false;
   $('#print-date').textContent = 'Informe generado el ' + new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
   const names = [withNatal && natal ? natal.data.name : null, withSyn && syn ? `${syn.dA.name} y ${syn.dB.name}` : null].filter(Boolean);
   document.title = `Astrolabio – ${names.join(' · ')}`;
+  if (!auto) window.scrollTo(0, 0);
 }
-function endPrint() {
-  document.body.classList.remove('printing', 'p-natal', 'p-syn');
+function exitReport() {
+  if (!report) return;
+  report.hidden.forEach(([p, h]) => { p.hidden = h; });
+  document.body.classList.remove('report', 'p-natal', 'p-syn');
+  $('#report-bar').hidden = true;
   document.title = 'Astrolabio';
+  const y = report.scroll; report = null;
+  window.scrollTo(0, y);
 }
-window.addEventListener('beforeprint', () => {
-  if (!document.body.classList.contains('printing')) {
-    const m = tabState.main === 'sinastria';
-    preparePrint(!m, m);
-  }
-});
-window.addEventListener('afterprint', endPrint);
+window.addEventListener('beforeprint', () => { if (!report) enterReport(!!natal, !!syn, true); });
+window.addEventListener('afterprint', () => { if (report && report.auto) exitReport(); });
 
 function setupExport() {
   const dlg = $('#export-dlg');
@@ -1926,17 +1945,20 @@ function setupExport() {
     $('#export-error').hidden = true;
     $('#export-frame-note').hidden = !inFrame;
     if (typeof dlg.showModal === 'function') dlg.showModal();
-    else { preparePrint(!!natal, !!syn); window.print(); }
+    else { enterReport(!!natal, !!syn, false); setTimeout(() => window.print(), 300); }
   });
   $('#export-form').addEventListener('submit', (e) => {
     if (e.submitter && e.submitter.value === 'cancel') return;
     const withNatal = $('#exp-natal').checked, withSyn = $('#exp-syn').checked;
     if (!withNatal && !withSyn) { e.preventDefault(); const er = $('#export-error'); er.textContent = 'Marca al menos una sección.'; er.hidden = false; return; }
     dlg.addEventListener('close', () => {
-      preparePrint(withNatal, withSyn);
-      setTimeout(() => window.print(), 50);
+      enterReport(withNatal, withSyn, false);
+      setTimeout(() => window.print(), 300);
     }, { once: true });
   });
+  $('#report-print').addEventListener('click', () => window.print());
+  $('#report-exit').addEventListener('click', exitReport);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && report && !dlg.open) exitReport(); });
 }
 
 boot();

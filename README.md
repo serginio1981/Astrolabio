@@ -14,7 +14,9 @@ Abre `index.html` en el navegador, o publícalo con GitHub Pages (rama `main`, c
 
 ### Exportar a PDF
 
-El botón **Exportar PDF** de la cabecera genera un informe A4 con todas las pestañas de la carta natal y, si se marca, de la comparación. Usa la impresión del navegador: en el diálogo elige **Guardar como PDF**. El PDF sale siempre en tema claro, con texto seleccionable y la rueda en vector. También funciona con Ctrl/Cmd + P, que exporta el módulo abierto.
+El botón **Exportar PDF** de la cabecera abre el informe completo, con todas las pestañas de la carta natal y de la comparación, sin importar cuál esté seleccionada. Después abre la ventana de impresión del navegador: elige **Guardar como PDF**. La barra superior del informe permite volver a guardarlo o regresar a la vista normal. Ctrl/Cmd + P también exporta todo.
+
+El PDF sale en A4 y tema claro, con texto seleccionable y la rueda en vector. Los estilos de impresión usan bloques en lugar de grid para que Firefox y Safari repartan bien las secciones largas entre páginas.
 
 Las vistas incrustadas que bloquean la impresión (por ejemplo, la vista previa de claude.ai) no pueden exportar; abre `index.html` directamente.
 
