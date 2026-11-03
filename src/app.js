@@ -361,13 +361,16 @@ function summaryHTML(ch, data, extra = '') {
     return `<div class="pillar"><div class="eyebrow">${label}</div><b>${sgl(s)} ${s.name} <span class="mono muted" style="font-weight:400;font-size:.8rem">${fmtDeg(p.lon, false)}</span></b></div>`;
   };
   const hs = { placidus: 'Placidus', equal: 'Casas iguales', whole: 'Signo entero' }[ch.houseSystem];
+  const kin = kinMaya(data.y, data.mo, data.d);
   return `
     <div class="section-title"><h2>${esc(data.name)} ${data.example ? '<span class="sample">Ejemplo</span>' : ''}</h2>${extra}</div>
     <div class="meta">
       <span>${fmtDate(data.y, data.mo, data.d)}${data.unknownTime ? ' · hora desconocida' : ` · ${String(data.h).padStart(2, '0')}:${String(data.mi).padStart(2, '0')} (${fmtOffset(ch.offset)})`}</span>
       <span>${esc(data.placeLabel)} · <span class="mono">${fmtCoord(data.lat, data.lon)}</span></span>
       ${ch.houses ? `<span>Casas: ${hs}</span>` : ''}
+      <span title="${esc(KIN_NOTA)}">${kin.kin ? `Kin maya ${kin.kin}: ${kin.nombre}` : `Kin maya: ${kin.nombre}`}</span>
     </div>
+    <p class="note">${KIN_NOTA}.</p>
     <div class="pillars">${pill('sun', 'Sol')}${pill('moon', 'Luna')}${pill('asc', 'Ascendente')}</div>`;
 }
 

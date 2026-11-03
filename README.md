@@ -34,12 +34,19 @@ El código fuente está en `src/` y se une en `index.html` con:
 ./build.sh
 ```
 
+Tests (Node 18 o superior, sin dependencias):
+
+```sh
+node --test
+```
+
 | Archivo | Contenido |
 | --- | --- |
 | `src/head.html` | Título, fuentes y estilos (tokens de color para modo claro y oscuro) |
 | `src/body.html` | Estructura de pestañas y formularios |
 | `src/data.js` | Ciudades (lat, lon, zona IANA) y textos de interpretación |
 | `src/engine.js` | Cálculo astronómico: planetas, Ascendente, MC, casas, aspectos, equilibrio |
+| `src/kin.js` | Kin maya del sistema Dreamspell (`kinMaya(y, mo, d)`) |
 | `src/app.js` | Interfaz: formularios, ruedas SVG, tablas, sinastría y compatibilidad |
 
 ## Cálculo
@@ -50,6 +57,7 @@ El código fuente está en `src/` y se une en `index.html` con:
 - Nodo Norte y Lilith medios.
 - La hora local se convierte a UTC con la base de zonas horarias del navegador (`Intl`), incluido el horario de verano histórico.
 - La puntuación de compatibilidad es una heurística propia y orientativa.
+- Kin maya según el sistema Dreamspell de José Argüelles (ancla 21/12/2012 = Kin 207), no la cuenta Tzolk'in tradicional (correlación GMT). El 29 de febrero no tiene Kin (Hunab Ku 0.0) y no cuenta al medir los días.
 
 ## Licencia
 

@@ -8,6 +8,6 @@ cd "$(dirname "$0")"
   printf '</head>\n<body>\n'
   cat src/body.html
   printf '<script>\n'
-  cat src/data.js src/engine.js src/app.js
+  cat src/data.js src/engine.js src/kin.js src/app.js
   printf '</script>\n</body>\n</html>\n'
 } > index.html
